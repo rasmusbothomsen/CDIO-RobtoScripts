@@ -10,7 +10,7 @@ import math
 
 
 ev3 = EV3Brick()
-leftMotor = Motor(port= Port.A)
+leftMotor = Motor(port= Port.B)
 rightMotor = Motor(port= Port.A)
 
 # Write your program here.
@@ -77,19 +77,7 @@ def turnToAngle(angle,turnRight):
 
             
 
-lastButton = Button.CENTER
-while True:
-    pressed = ev3.buttons.pressed()
-    
-    if(lastButton != pressed):
-        stop()
-        if(pressed == Button.UP):
-            leftMotor.run(300)
-        if(pressed == Button.DOWN):
-            leftMotor.run(300)
-        if(pressed == Button.LEFT):
-            break
-    lastButton = pressed
+turnToAngle(90,150)
 
 
 
