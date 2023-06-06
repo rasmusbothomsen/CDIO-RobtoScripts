@@ -12,6 +12,8 @@ import math
 ev3 = EV3Brick()
 leftMotor = Motor(port= Port.B)
 rightMotor = Motor(port= Port.A)
+base = DriveBase(leftMotor,rightMotor,31.5,110.5)
+base.settings(100,100,100,100)
 
 # Write your program here.
 #leftMotor.run_angle(500,360)
@@ -34,6 +36,14 @@ def stop():
 
 
 gyroScope = GyroSensor(port=Port.S1)
+
+def newTurnToAngle(angle):
+    gyroScope.reset_angle(0)
+    desired_angle = gyroScope.angle() + angle
+    base.turn(angle,Stop.BRAKE)
+    newAngle = gyroScope.angle()-desired_angle
+    base.turn(newAngle,Stop.BRAKE,wait=False)
+    
 
 def turnToAngle(angle,turnRight):
     keepTurning = True
@@ -77,7 +87,7 @@ def turnToAngle(angle,turnRight):
 
             
 
-turnToAngle(90,150)
+newTurnToAngle(90)
 
 
 
