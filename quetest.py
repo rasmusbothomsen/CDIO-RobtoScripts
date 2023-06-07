@@ -10,10 +10,12 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 
 ev3 = EV3Brick()
 
-motor_rotate = Motor(port=Port.A)
+unload_motor = Motor(port=Port.A)
 
-def turnturn:
-    while True: 
-        motor_rotate.run_angle(100, 360)
 
-turnturn()
+def unloadTest(): 
+    unload_motor.run_angle(150, 300)
+
+unloadTest(); 
+
+

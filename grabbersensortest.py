@@ -13,6 +13,7 @@ ballsensor = UltrasonicSensor(port=Port.S1)
 right_motor = Motor(port=Port.A)
 left_motor = Motor(port=Port.B)
 grabber_motor = Motor(port=Port.C)
+unload_motor = Motor(port=Port.D)
 
 robot = DriveBase(right_motor, left_motor, wheel_diameter=55.5, axle_track=104)
 
@@ -30,3 +31,4 @@ def drive_and_grab():
             grab_ball()
 
 drive_and_grab()
+
