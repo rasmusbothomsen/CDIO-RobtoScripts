@@ -20,7 +20,7 @@ while True:
     data = s.recv(1024).decode()
     s.sendall(bytes(data,'utf-8'))
     if("turnleft" in data):
-        SocketTest.turn(300,-300,int(data.split("|")[1]))
+        SocketTest.turnToAngleLeft(angle,int(data.split("|")[1]))
     elif ("turnright" in data):
         SocketTest.turn(-300,300,int(data.split("|")[1]))
     elif ("grap" in data):

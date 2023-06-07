@@ -8,42 +8,69 @@ from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
 import math
 
-
+#Defines the robots configurations. 
 ev3 = EV3Brick()
-leftmotor = Motor(port=Port.D)
-rightmotor = Motor(port=Port.B)
-grapper = Motor(port=Port.C)
-unloader = Motor(port=Port.A)
+right_motor = Motor(port=Port.A)
+grabber = Motor(port=Port.B)
+unloader = Motor(port=Port.C)
+left_motor = Motor(port=Port.D)
 
+sensor = UltrasonicSensor(port=Port.S1)
+gyro = GyroSensor(port=Port.S4)
 
+robot = DriveBase(right_motor, left_motor, wheel_diameter=31.5, axle_track=107.77)
 
+#Steering and overshooting for the margin of our failure rate. 
+steering = 0.6666666666666666666666666666666666
+overshoot = 0.055555555555555555555555555555555
 
+#Not used very often - makes the robot beep. 
 def playSound():
     ev3.speaker.beep()
 
+#Not used very often - For displaying Text
 def DisplayText(text):
     ev3.screen.clear()
     ev3.screen.draw_text(1,1,text=text)
 
-def moveMotor(degree):
-    leftMotor = Motor(port= Port.A)
-    leftMotor.run_angle(100,degree,wait=False)
+#This function makes the robot drive straight
+def moveForward(distance):
+    robot.straight(distance, wait=True)
 
-def moveForward(time):
-    leftmotor.run_time(600,time,wait=False, then= Stop.BRAKE)
-    rightmotor.run_time(600,time,wait=False, then= Stop.BRAKE)
+#Drives the robot backwards
+def moveBackwards(distance):
+    robot.straight(-distance, wait=True)
 
-def turn(leftSpeed,RightSpeed,time):
-    leftmotor.run_time(leftSpeed,time,wait=False, then= Stop.BRAKE)
-    rightmotor.run_time(RightSpeed,time,wait=False, then= Stop.BRAKE)
+#Turns the robot right
+def turnToAngleRight(angle):
+    desiredAngle = gyro.angle()+angle
+    robot.drive(0, (40))
+    while gyro.angle() < (desiredAngle - (overshoot*angle)):
+        wait(1)
+    robot.drive(0, 0)
 
-def grap(unload, angle):
-    if(unload):
-        angle *= -1
-    grapper.run_angle(400,angle, wait= False)
+#Turns the robot left
+def turnToAngleLeft(angle):
+    desiredAngle = gyro.angle()-angle
+    robot.drive(0, (-40))
+    while gyro.angle() > (desiredAngle - (overshoot*angle)):
+        wait(1)
+    robot.drive(0, 0)
 
-def unload(close, angle):
-    if(close):
-        angle *= -1
-    unloader.run_angle(400,angle, wait= False)
+#Drives slow towards the ball and grabs the ball with the grapper. 
+def grab_ball(distance):
+    while True:
+        robot.straight(distance, wait=False)
+        if sensor.distance() < 70 and sensor.distance() > 60:
+             robot.state()
+             grabber.run_angle(600, 1620)
+             grabber.run_angle(600, -1620)
+#Unloads balls
+def unload_balls(): 
+
+
+
+
+
+
 
