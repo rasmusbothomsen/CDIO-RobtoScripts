@@ -4,14 +4,28 @@ from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.finder.best_first import BestFirst
 from pathfinding.core import heuristic, diagonal_movement
-from pathfinding.finder import best_first
+import math
 
 
 class NavigationController:
-    def __init__(self, image_path):
-        self.image = cv2.imread(image_path)
+    def __init__(self, image):
+        self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+    def rotate_vector(self,vector, angle_deg):
+        # Convert angle from degrees to radians
+        angle_rad = math.radians(angle_deg)
         
+        # Extract the x and y components of the vector
+        x, y = vector
+        
+        # Compute the new x and y components after rotation
+        new_x = x * math.cos(angle_rad) - y * math.sin(angle_rad)
+        new_y = x * math.sin(angle_rad) + y * math.cos(angle_rad)
+        
+        # Return the rotated vector
+        return (new_x, new_y)
+    def VectorOf2Points(self,v1,v2):
+        return ((v2[0]-v1[0]),(v2[1]-v1[1]))
 
     def unit_vector(self, vector):
         return vector / np.linalg.norm(vector)
@@ -94,10 +108,10 @@ class NavigationController:
 
         self.image = masked_image
 
-    def find_circles(self, blue_thresh, red_thresh, green_thresh):
+    def find_circles(self,image, blue_thresh, red_thresh, green_thresh):
         # Converts image from RGB to grayscale
-        img = cv2.cvtColor(self.image, cv2.COLOR_RGB2GRAY)
-        image = self.image.copy()
+        img = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        image = image.copy()
 
         # Reduces noise by blurring image
         img_blur = cv2.medianBlur(img, 5)
@@ -147,7 +161,7 @@ class NavigationController:
     def create_binary_mesh(self):
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
-        self.image = self.expand_red_selection(self.image, 40)
+        self.image = self.expand_red_selection(self.image, 0)
         image_cp = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         binary_image = np.zeros_like(image_cp)
         binary_image[image_cp != 0] = 1
@@ -223,7 +237,7 @@ class NavigationController:
        
         
         grid = Grid(matrix=self.binary_image)
-        b_first = best_first.BestFirst(heuristic=heuristic.euclidean)
+        b_first = BestFirst(heuristic=heuristic.euclidean)
         start = grid.node(start[0], start[1])
         end = grid.node(goal[0], goal[1])
         path, runs = b_first.find_path(start, end, grid)

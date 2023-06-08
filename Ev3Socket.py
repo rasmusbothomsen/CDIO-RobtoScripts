@@ -18,26 +18,20 @@ s.sendall(b'Hello, server!')
 # Receive a response from the server
 while True:
     data = s.recv(1024).decode()
-    s.sendall(bytes(data,'utf-8'))
-    if("turnleft" in data):
-        SocketTest.turnToAngleLeft(angle,int(data.split("|")[1]))
-    elif ("turnright" in data):
-        SocketTest.turn(-300,300,int(data.split("|")[1]))
-    elif ("grap" in data):
-        SocketTest.grap(False, int(data.split("|")[1]))
-    elif ("ungrap" in data):
-        SocketTest.grap(True, int(data.split("|")[1]))
-    elif ("unload" in data):
-        SocketTest.unload(False, int(data.split("|")[1]))
-    elif ("close" in data):
-        SocketTest.unload(True, int(data.split("|")[1]))
-    elif(data == "exit"):
+    print(data)
+    if("TurnLeft" in data):
+        retrunAngle = SocketTest.turnToAngleLeft(float(data.split("|")[1]))
+        s.sendall(bytes(str(retrunAngle),'utf-8'))
+    if("TurnRight" in data):
+        retrunAngle = SocketTest.turnToAngleRight(float(data.split("|")[1]))
+        s.sendall(bytes(str(retrunAngle),'utf-8'))
+    elif("Forward" in data):
+        SocketTest.moveForward(float(data.split("|")[1]))
+        s.sendall(bytes("as",'utf-8'))
+    elif("GrabBall" in data):
+        SocketTest.grab_ball()
+    elif("End" in data):
         break
-    elif("move" in data):
-        SocketTest.moveForward(int(data.split("|")[1]))
-    else:
-        SocketTest.DisplayText(data)
-        
     
 
 SocketTest.playSound()

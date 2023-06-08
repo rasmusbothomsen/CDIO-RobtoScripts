@@ -11,12 +11,11 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 ev3 = EV3Brick()
 ballsensor = UltrasonicSensor(port=Port.S1)
 right_motor = Motor(port=Port.A)
-left_motor = Motor(port=Port.B)
-grabber_motor = Motor(port=Port.C)
-unload_motor = Motor(port=Port.D)
+left_motor = Motor(port=Port.D)
+grabber_motor = Motor(port=Port.B)
+unload_motor = Motor(port=Port.C)
 
-robot = DriveBase(right_motor, left_motor, wheel_diameter=55.5, axle_track=104)
-
+robot = DriveBase(right_motor= right_motor,left_motor= left_motor, wheel_diameter=55.5, axle_track=104)
 
 def grab_ball(): 
     robot.drive(0,0)
