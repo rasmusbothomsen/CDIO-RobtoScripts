@@ -26,6 +26,7 @@ robotAngle = (0,-1)
 image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_15_49_20_Pro.jpg")
 controller = NavigationController(image)
 failed = False
+# This is done in cases where the triangle is not found on the 100% size of the image, then we try again on the 80% size
 try:
     controller.detectRobot(image)
 except:
