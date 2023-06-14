@@ -18,7 +18,8 @@ left_motor = Motor(port=Port.D)
 sensor = UltrasonicSensor(port=Port.S1)
 gyro = GyroSensor(port=Port.S4)
 
-robot = DriveBase(right_motor= right_motor,left_motor= left_motor, wheel_diameter=31.5, axle_track=107.77)
+robot = DriveBase(left_motor, right_motor, wheel_diameter=31.5, axle_track=116.0)
+robot.settings(100, 100, 40, 40)
 gyro.reset_angle(0)
 
 #Steering and overshooting for the margin of our failure rate. 
@@ -44,28 +45,30 @@ def moveBackwards(distance):
 
 #Turns the robot right
 def turnToAngleRight(angle):
-    gyro.reset_angle(0)
-    desiredAngle = gyro.angle()+angle
-    robot.drive(0, (40))
-    while gyro.angle() < (desiredAngle - (overshoot*angle)):
-        wait(1)
-    robot.drive(0, 0)
+    robot.turn(angle)
+    # gyro.reset_angle(0)
+    # desiredAngle = gyro.angle()+angle
+    # robot.drive(0, (40))
+    # while gyro.angle() < (desiredAngle - (overshoot*angle)):
+    #     wait(1)
+    # robot.drive(0, 0)
     return gyro.angle()
 
 #Turns the robot left
 def turnToAngleLeft(angle):
-    gyro.reset_angle(0)
-    desiredAngle = gyro.angle()-angle
-    robot.drive(0, (-40))
-    while gyro.angle() > (desiredAngle - (overshoot*desiredAngle)):
-        wait(1)
-    robot.drive(0, 0)
+    robot.turn(-angle)
+    # gyro.reset_angle(0)
+    # desiredAngle = gyro.angle()-angle
+    # robot.drive(0, (-40))
+    # while gyro.angle() > (desiredAngle - (overshoot*desiredAngle)):
+    #     wait(1)
+    # robot.drive(0, 0)
 
 #Drives slow towards the ball and grabs the ball with the grapper. 
 def grab_ball():
     while True:
-        robot.drive(40, 0)
+        robot.drive(10, 0)
         if sensor.distance() < 70 and sensor.distance() > 60:
              robot.drive(0,0)
-             grabber.run_angle(600, 1620)
-             grabber.run_angle(600, -1620)
+             grabber.run_angle(600, 1500)
+             grabber.run_angle(600, -1500)

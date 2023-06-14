@@ -16,35 +16,7 @@ rightMotor = Motor(port= Port.A)
 robot = DriveBase(rightMotor, leftMotor, wheel_diameter=31.5, axle_track=107.77)
 
 
-robot.turn(90)
-robot.turn(90)
-robot.turn(90)
-robot.turn(90)
-
-
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-
-
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-
+robot.straight(700)
 
 
 
