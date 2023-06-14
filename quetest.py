@@ -1,21 +1,8 @@
-#!/usr/bin/env pybricks-micropython
-from pybricks.hubs import EV3Brick
-from pybricks.ev3devices import (Motor, TouchSensor, ColorSensor,
-                                 InfraredSensor, UltrasonicSensor, GyroSensor)
-from pybricks.parameters import Port, Stop, Direction, Button, Color
-from pybricks.tools import wait, StopWatch, DataLog
-from pybricks.robotics import DriveBase
-from pybricks.media.ev3dev import SoundFile, ImageFile
+#!/usr/bin/env python3
+from newTest import RobotController
 
 
-ev3 = EV3Brick()
+controller = RobotController(30,10)
+controller.StartRobot()
 
-unload_motor = Motor(port=Port.A)
-
-
-def unloadTest(): 
-    unload_motor.run_angle(150, 300)
-
-unloadTest(); 
-
-
+controller.GrapBall()
