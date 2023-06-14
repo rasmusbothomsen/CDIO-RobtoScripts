@@ -13,37 +13,14 @@ ev3 = EV3Brick()
 leftMotor = Motor(port= Port.D)
 rightMotor = Motor(port= Port.A)
 #107.77
-robot = DriveBase(rightMotor, leftMotor, wheel_diameter=31.5, axle_track=107.77)
+robot = DriveBase(leftMotor, rightMotor, wheel_diameter=31.5, axle_track=116.0)
+robot.settings(100, 100, 40, 40)
 
-
+robot.turn(360)
 robot.turn(90)
 robot.turn(90)
-robot.turn(90)
-robot.turn(90)
 
 
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-robot.turn(45)
-
-
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
-robot.turn(30)
 
 
 
