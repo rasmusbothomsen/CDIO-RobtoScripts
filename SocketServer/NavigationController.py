@@ -158,10 +158,10 @@ class NavigationController:
 
         return new_circles, image, orange_ball
 
-    def create_binary_mesh(self):
+    def create_binary_mesh(self,borderSize):
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
-        self.image = self.expand_red_selection(self.image, 0)
+        self.image = self.expand_red_selection(self.image, borderSize)
         image_cp = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         binary_image = np.zeros_like(image_cp)
         binary_image[image_cp != 0] = 1
@@ -178,32 +178,58 @@ class NavigationController:
 
         new_dex = []
         for idx in range(len(vector_points) - 1):
-            if vector_points[idx] != vector_points[idx + 1]:
+            if(len(new_dex)<1):
+                res = 100
+            else:
+                res =  sum(tuple(map(lambda i, j: i - j, new_dex[-1], path[idx])))
+            if (vector_points[idx] != vector_points[idx + 1]) and res > 10:
                 new_dex.append(path[idx])
         new_ar = []
         new_ar.append((start.x,start.y))
         new_ar.extend(new_dex)
         new_ar.append((goal.x,goal.y))
         return new_ar
-
     def expand_red_selection(self, segmented_image, border_size):
-        # Extract the red channel from the segmented image
+        gray = cv2.cvtColor(segmented_image,cv2.COLOR_RGB2GRAY)
+        contours, hierarchy = cv2.findContours(gray, 
+        cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         red_channel = segmented_image[:, :, 2]
 
         # Create a mask based on the red channel
         mask = cv2.threshold(red_channel, 50, 255, cv2.THRESH_BINARY)[1]
-
         # Expand the mask by the specified number of pixels using dilation
         kernel = np.ones((border_size, border_size), np.uint8)
         mask = cv2.dilate(mask, kernel, iterations=1)
-
         # Create a new selection based on the expanded mask
         orange = np.zeros_like(segmented_image)
         orange[:, :, 0] = 0
         orange[:, :, 1] = 128
         orange[:, :, 2] = 255
         orange[mask != 0] = segmented_image[mask != 0]
+        self.orangCp = orange.copy()
+        for contour in contours:
+    # Calculate the area of the contour
+            area = cv2.contourArea(contour)
+            
+            # Check if the area is less than 100
+            if area < 100:
+                # Create a mask for the contour region
+                mask = np.zeros_like(gray)
+                
+                # Set the pixels within the contour region to black
+                orange[mask == 255] = [0, 128, 255]  # Set RGB values to black
+            if area > 100 and area < 4000:
+                # Get the bounding rectangle of the contour
+                x, y, w, h = cv2.boundingRect(contour)
 
+                # Calculate the coordinates for the square border
+                top = max(0, y - border_size)
+                bottom = min(segmented_image.shape[0], y + h + border_size)
+                left = max(0, x - border_size)
+                right = min(segmented_image.shape[1], x + w + border_size)
+
+                # Draw the square border on the image
+                cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
         return orange
 
     def scale_image(self, scale):
