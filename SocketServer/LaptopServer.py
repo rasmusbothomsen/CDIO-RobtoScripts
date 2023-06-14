@@ -4,33 +4,37 @@ import cv2
 import numpy as np
 import math
 
-HOST = '192.168.137.1'  # Listen on all available interfaces
-PORT = 1234
+# HOST = '192.168.137.1'  # Listen on all available interfaces
+# PORT = 1234
 
-# Create a socket object
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# # Create a socket object
+# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# Bind the socket to a specific interface and port
-s.bind((HOST, PORT))
+# # Bind the socket to a specific interface and port
+# s.bind((HOST, PORT))
 
-# Listen for incoming connections
-s.listen(1)
+# # Listen for incoming connections
+# s.listen(1)
 
-print('Server listening on port', PORT)
+# print('Server listening on port', PORT)
 
-# Wait for a client to connect
-conn, addr = s.accept()
-print('Connected by', addr)
+# # Wait for a client to connect
+# conn, addr = s.accept()
+# print('Connected by', addr)
 
-data = conn.recv(1024)
-print('Received', data)
+# data = conn.recv(1024)
+# print('Received', data)
 
 robotPosition = (432,514)
 robotAngle = (0,-1)
-image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230608_15_14_00_Pro.jpg")
+image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_10_50_09_Pro.jpg")
 controller = NavigationController(image)
+controller.detectRobot(image)
 controller.scale_image(80)
+robotPosition = controller.getRobotPosition()
 imageCp = controller.image.copy()
+cv2.circle(imageCp,(robotPosition['front']),10,(255,0,0),-1)
+controller.show_image(imageCp)
 circles,_,orangeBall = controller.find_circles(imageCp,130,130,130)
 controller.create_binary_mesh(50)
 controller.show_image(controller.image)

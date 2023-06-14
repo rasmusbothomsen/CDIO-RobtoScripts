@@ -231,7 +231,69 @@ class NavigationController:
                 # Draw the square border on the image
                 cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
         return orange
+    
+    def FindVinkel(self,a, b, c):
+        ba = a - b
+        bc = c - b
 
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        return angle
+
+    def FrontAndBack(self,vertices):
+        #Finder vinklerne (chatten)
+        angles = [self.FindVinkel(vertices[(i + 1) % 3], vertices[i], vertices[(i + 2) % 3]) for i in range(3)]
+        #finder den mindste vinkel
+        tip_index = np.argmin(angles)
+        #Finder koordinat af den
+        tip_point = vertices[tip_index]
+        #Giver de to sidste vinkel koordinater tilbage, så midten af deres linje kan findes og danne "back" koordinat
+        base_points = np.delete(vertices, tip_index, axis=0)
+
+        return tip_point, base_points
+
+    def detectRobot(self,image):
+        imagecp = image
+        #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
+        #Men jeg turde ikke pille for meget ved det
+        imagecp = self.scale_image(100)
+        imagecp = self.image
+        imagecp = cv2.cvtColor(imagecp, cv2.COLOR_BGR2RGB)
+        image = imagecp.copy()
+
+        blurred = cv2.GaussianBlur(image, (5, 5), 0)
+        edges = cv2.Canny(blurred, 50, 150)
+        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        triangle_contour = []
+        for cont in contours:
+            perimeter = cv2.arcLength(cont, True)
+            approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
+            area = cv2.contourArea(cont)
+            if len(approx) == 3 and 700 < area < 2000:
+                triangle_contour.append(approx)
+                break
+
+        #Calculate normalized contour coordinates
+        triangle_contour = np.squeeze(triangle_contour)
+        triangle_contour = triangle_contour / (image.shape[1], image.shape[0])
+
+        self.triangle_contour = triangle_contour
+       
+    def getRobotPosition(self):
+        triangle_info = {}
+         #revert back to pixel coordinates with scaled images
+        triangle_contour = self.triangle_contour * (self.image.shape[1], self.image.shape[0])
+        triangle_contour = np.expand_dims(triangle_contour, axis=1)
+        approx = triangle_contour.astype(np.int32)
+
+        tip_point, base_points = self.FrontAndBack(approx[:, 0])
+        mid_base_point = np.mean(base_points, axis=0).astype(int)
+        triangle_info['front'] = tuple(tip_point)
+        triangle_info['back'] = tuple(mid_base_point)
+
+
+        return triangle_info
     def scale_image(self, scale):
         scale_percent = scale  # percent of original size
         width = int(self.image.shape[1] * scale_percent / 100)
@@ -257,7 +319,7 @@ class NavigationController:
         # Convert the LAB image back to RGB color space
         rgb_clahe = cv2.cvtColor(lab_clahe, cv2.COLOR_LAB2BGR)
 
-        self.image = rgb_clahe
+        self.image = resized_img
 
     def find_path(self, start, goal):
        

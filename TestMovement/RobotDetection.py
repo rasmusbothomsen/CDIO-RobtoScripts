@@ -41,8 +41,6 @@ def detectRobot(image_path):
     imagecp = cv2.imread(image_path)
     #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
     #Men jeg turde ikke pille for meget ved det
-    imagecp = scaleImage(imagecp, 100)
-    imagecp = cv2.cvtColor(imagecp, cv2.COLOR_BGR2RGB)
     image = imagecp.copy()
 
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
@@ -54,7 +52,7 @@ def detectRobot(image_path):
         perimeter = cv2.arcLength(cont, True)
         approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
         area = cv2.contourArea(cont)
-        if len(approx) == 3 and 700 < area < 2000:
+        if len(approx) == 3 and area>700:
             cv2.drawContours(image, [approx], 0, (0, 0, 255), 2)
             tip_point, base_points = FrontAndBack(approx[:, 0])
             cv2.circle(image, tuple(tip_point), 5, (255, 0, 0), -1)
@@ -73,7 +71,7 @@ def detectRobot(image_path):
 
     return triangle_info
 
-image_path = "/Users/berfinfloraturan/Downloads/robot/en/RobotBillede1.jpg"
+image_path = r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_10_50_09_Pro.jpg"
 triangle_info = detectRobot(image_path)
 print(triangle_info.get("front"))
 print(triangle_info.get("back"))
