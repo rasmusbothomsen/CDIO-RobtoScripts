@@ -27,7 +27,7 @@ import math
 
 robotPosition = (432,514)
 robotAngle = (0,-1)
-image = cv2.imread(r"C:\Users\rasmu\Downloads\351638293_785027243207998_7844219772980120963_n.jpg")
+image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_10_50_09_Pro.jpg")
 controller = NavigationController(image)
 controller.detectRobot(image)
 controller.scale_image(80)
