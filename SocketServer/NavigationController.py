@@ -11,6 +11,8 @@ class NavigationController:
     def __init__(self, image):
         self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        self.binary_image = None
+
     def rotate_vector(self,vector, angle_deg):
         # Convert angle from degrees to radians
         angle_rad = math.radians(angle_deg)
@@ -348,8 +350,9 @@ class NavigationController:
         self.image = resized_img
 
     def find_path(self, start, goal):
-       
-        
+        if self.binary_image is None:
+            raise ValueError("Binary image is missing. Run create_binary_mesh() first.")
+
         grid = Grid(matrix=self.binary_image)
         b_first = BestFirst(heuristic=heuristic.euclidean)
         start = grid.node(start[0], start[1])

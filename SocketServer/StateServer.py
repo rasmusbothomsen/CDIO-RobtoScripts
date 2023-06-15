@@ -14,10 +14,12 @@ class State:
 class Stateserver:
     def __init__(self):
         print("Stateserver init")
+        self.mesh_image = None
 
     def imageCapture(self):
-        cam = cv2.VideoCapture(0)
-        result, image = cam.read()
+        #cam = cv2.VideoCapture(0)
+        #result, image = cam.read()
+        image = cv2.imread("/Users/berfinfloraturan/Desktop/robot2.jpg")
 
         return image
 
@@ -56,9 +58,9 @@ class Stateserver:
             state.loadOffCount = len(circles) - 6
 
         controller.show_image(ballImage)
-        mesh = controller.create_binary_mesh(50)
+        binary_mesh = controller.create_binary_mesh(50)  # Create binary image
+        cv2.imwrite("meshImage.jpg", binary_mesh)
         controller.show_image(controller.image)
-        cv2.imwrite("meshImage.jpg", mesh)
         path = controller.find_path(robotPosition,(circles[0][:2]))
 
         #self.translatePath(s, imageCp, circles, robotAngle, path, controller)
@@ -138,20 +140,20 @@ class Stateserver:
         controller.show_image(imageCp)
         circles,ballImage,orangeBall = controller.find_circles(imageCp,130,130,130)
         controller.show_image(ballImage)
-        cv2.imread("meshImage.jpg")
+        binary_mesh = cv2.imread("meshImage.jpg", cv2.IMREAD_GRAYSCALE)  # Load binary mesh image
+        controller.binary_image = binary_mesh
 
         if(len(circles) == state.loadOffCount):
-            #path to goal to implement
+                #path to goal to implement
             print("Time to drop off balls")
-            if(len(circles) <= 6):
-                state.loadOffCount = 0
-            else:
-                state.loadOffCount = len(circles) - 6
+        if(len(circles) <= 6):
+            state.loadOffCount = 0
+        else:
+            state.loadOffCount = len(circles) - 6
         if (len(circles) == 0):
             state.anyBallsLeft = False
         else:
             path = controller.find_path(robotPosition,(circles[0][:2]))
-
-        #self.translatePath(s, imageCp, circles, robotAngle, path, controller)
-        print("kommandoer sendt til lobster")
+            #self.translatePath(s, imageCp, circles, robotAngle, path, controller)
+            print("kommandoer sendt til lobster")
 
