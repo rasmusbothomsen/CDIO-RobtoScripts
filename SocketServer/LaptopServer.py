@@ -21,8 +21,7 @@ print('Server listening on port', PORT)
 # Wait for a client to connect
 
 
-robotPosition = (379,630)
-robotAngle = (0,-1)
+
 image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_15_49_20_Pro.jpg")
 controller = NavigationController(image)
 failed = False
@@ -39,6 +38,9 @@ if(failed):
 robotDirection = controller.getRobotPosition()
 robotPosition = robotDirection["back"]
 
+robotPosition = (379,630)
+robotAngle = controller.getRobotAngle(robotDirection('front')[0], robotDirection('front')[1], robotDirection('back')[0], robotDirection('back')[1])
+print(robotAngle)
 
 imageCp = controller.image.copy()
 cv2.circle(imageCp,(robotDirection['front']),10,(255,0,0),-1)

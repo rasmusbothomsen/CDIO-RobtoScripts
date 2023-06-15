@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import math
 
 #Havde kun et billede at teste på, men roterede det, og det virkede stadig
 def scaleImage(image, scale):
@@ -41,7 +42,7 @@ def detectRobot(image_path):
     imagecp = cv2.imread(image_path)
     #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
     #Men jeg turde ikke pille for meget ved det
-    imagecp = scaleImage(imagecp,100)
+    imagecp = scaleImage(imagecp,80)
     image = imagecp.copy()
 
     blurred = cv2.GaussianBlur(image, (5, 5), 0)
@@ -65,15 +66,51 @@ def detectRobot(image_path):
             cv2.putText(image, 'Back', (mid_base_point[0], mid_base_point[1]), cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
             triangle_info['front'] = tuple(tip_point)
             triangle_info['back'] = tuple(mid_base_point)
-            break
+            break   
+
+        
+
+    
+
 
     cv2.imshow("Shapes", image)
     cv2.waitKey(0)
     cv2.destroyAllWindows()
-
     return triangle_info
 
-image_path = r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_15_45_49_Pro.jpg"
+def calc_bearing():
+        lat1 = triangle_info.get("front")[0]
+        long1 = triangle_info.get("front")[1]
+        lat2 = triangle_info.get("back")[0]
+        long2 = triangle_info.get("back")[1]
+        # Convert latitude and longitude to radians
+        lat1 = math.radians(lat1)
+        long1 = math.radians(long1)
+        lat2 = math.radians(lat2)
+        long2 = math.radians(long2)
+  
+        # Calculate the bearing
+        bearing = math.atan2(
+        math.sin(long2 - long1) * math.cos(lat2),
+        math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(long2 - long1))
+  
+        # Convert the bearing to degrees
+        bearing = math.degrees(bearing)
+  
+        # Make sure the bearing is positive
+        bearing = (bearing + 360) % 360
+
+        radians = bearing * (math.pi/180)
+        cos = math.cos(radians)* -1
+        sin = math.sin(radians)
+        robot_cossin = (cos, sin)        
+        return robot_cossin
+    
+
+
+image_path = ("/Users/frederikhelsoe/Desktop/Robo-Billeder/RobotBilledekl12.jpg")
 triangle_info = detectRobot(image_path)
 print(triangle_info.get("front"))
 print(triangle_info.get("back"))
+print(calc_bearing())
+

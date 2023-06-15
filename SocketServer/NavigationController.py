@@ -293,6 +293,35 @@ class NavigationController:
 
 
         return triangle_info
+    
+    def getRobotAngle(lat1, long1, lat2, long2):
+        #lat1 = triangle_info.get("front")[0]
+        #long1 = triangle_info.get("front")[1]
+        #lat2 = triangle_info.get("back")[0]
+        #long2 = triangle_info.get("back")[1]
+        # Convert latitude and longitude to radians
+        lat1 = math.radians(lat1)
+        long1 = math.radians(long1)
+        lat2 = math.radians(lat2)
+        long2 = math.radians(long2)
+  
+        # Calculate the bearing
+        bearing = math.atan2(
+        math.sin(long2 - long1) * math.cos(lat2),
+        math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(long2 - long1))
+  
+        # Convert the bearing to degrees
+        bearing = math.degrees(bearing)
+  
+        # Make sure the bearing is positive
+        bearing = (bearing + 360) % 360
+
+        radians = bearing * (math.pi/180)
+        cos = math.cos(radians)* -1
+        sin = math.sin(radians)
+        robot_cossin = (cos, sin)        
+        return robot_cossin
+    
     def scale_image(self, scale):
         scale_percent = scale  # percent of original size
         width = int(self.image.shape[1] * scale_percent / 100)
