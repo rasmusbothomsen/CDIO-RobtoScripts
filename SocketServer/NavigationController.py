@@ -291,9 +291,11 @@ class NavigationController:
 
         tip_point, base_points = self.FrontAndBack(approx[:, 0])
         mid_base_point = np.mean(base_points, axis=0).astype(int)
+        center = tuple(np.mean([tip_point, mid_base_point], axis=0).astype(int))
 
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
+        triangle_info['center'] = center
 
         return triangle_info
 
@@ -361,6 +363,14 @@ class NavigationController:
         print(f"length of path {len(path)}")
 
         new_ar = self.find_path_vector_points(path, start, end)
+        # Draw the path on the image
+        image_with_path = self.image.copy()
+        for i in range(len(new_ar) - 1):
+            point1 = new_ar[i]
+            point2 = new_ar[i + 1]
+            cv2.line(image_with_path, point1, point2, (0, 255, 0), 2)
+
+        self.show_image(image_with_path)
 
         return new_ar
 

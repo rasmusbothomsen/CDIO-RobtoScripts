@@ -37,7 +37,8 @@ class Stateserver:
             controller.detectRobot(controller.image)
 
         robotDirection = controller.getRobotPosition()
-        robotPosition = robotDirection["back"] #Change to center of triangle
+        robotPosition = robotDirection["center"] #Change to center of triangle
+        print(robotPosition)
 
         lat1 = robotDirection['front'][0]
         long1 = robotDirection['front'][1]
@@ -126,7 +127,7 @@ class Stateserver:
             controller.detectRobot(controller.image)
 
         robotDirection = controller.getRobotPosition()
-        robotPosition = robotDirection["back"] #Change to center of triangle
+        robotPosition = robotDirection["center"] #Change to center of triangle
 
         lat1 = robotDirection['front'][0]
         long1 = robotDirection['front'][1]
