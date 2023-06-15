@@ -4,43 +4,56 @@ import cv2
 import numpy as np
 import math
 
-# HOST = '192.168.137.1'  # Listen on all available interfaces
-# PORT = 1234
+HOST = '192.168.137.1'  # Listen on all available interfaces
+PORT = 1234
 
-# # Create a socket object
-# s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+# Create a socket object
+s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-# # Bind the socket to a specific interface and port
-# s.bind((HOST, PORT))
+# Bind the socket to a specific interface and port
+s.bind((HOST, PORT))
 
-# # Listen for incoming connections
-# s.listen(1)
+# Listen for incoming connections
+s.listen(1)
 
-# print('Server listening on port', PORT)
+print('Server listening on port', PORT)
 
-# # Wait for a client to connect
-# conn, addr = s.accept()
-# print('Connected by', addr)
+# Wait for a client to connect
 
-# data = conn.recv(1024)
-# print('Received', data)
 
-robotPosition = (432,514)
+robotPosition = (379,630)
 robotAngle = (0,-1)
-image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_10_50_09_Pro.jpg")
+image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_15_49_20_Pro.jpg")
 controller = NavigationController(image)
-controller.detectRobot(image)
+failed = False
+# This is done in cases where the triangle is not found on the 100% size of the image, then we try again on the 80% size
+try:
+    controller.detectRobot(image)
+except:
+    failed = True
+
 controller.scale_image(80)
-robotPosition = controller.getRobotPosition()
+if(failed):
+    controller.detectRobot(controller.image)
+
+robotDirection = controller.getRobotPosition()
+robotPosition = robotDirection["back"]
+
+
 imageCp = controller.image.copy()
-cv2.circle(imageCp,(robotPosition['front']),10,(255,0,0),-1)
+cv2.circle(imageCp,(robotDirection['front']),10,(255,0,0),-1)
 controller.show_image(imageCp)
-circles,_,orangeBall = controller.find_circles(imageCp,130,130,130)
+circles,ballImage,orangeBall = controller.find_circles(imageCp,130,130,130)
+controller.show_image(ballImage)
 controller.create_binary_mesh(50)
 controller.show_image(controller.image)
-path = controller.find_path(robotPosition,circles[0][:2])
+path = controller.find_path(robotPosition,(circles[0][:2]))
 
+conn, addr = s.accept()
+print('Connected by', addr)
 
+data = conn.recv(1024)
+print('Received', data)
 for x in range(len(path)-1):
     cv2.line(imageCp,path[x],path[x+1],(255,0,0),2)
 
@@ -57,8 +70,9 @@ for x in range(len(path)-1):
     print(f"Path vector {vector1}")
     robotVectorAngle = controller.angle_between(robotAngle,vector1)
     vector1Len = np.linalg.norm(vector1)
-    if(x == len(path)-1):
-         vector1Len = vector1Len-100
+    if(x == len(path)-2):
+         print(f"Last run {vector1Len-400} new val {vector1Len-400}")
+         vector1Len = vector1Len-400
     if(robotVectorAngle<=3):
         robotVectorAngle=0
     print(f"TurnAngle: {robotVectorAngle}")

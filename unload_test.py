@@ -10,9 +10,13 @@ from pybricks.media.ev3dev import SoundFile, ImageFile
 
 ev3 = EV3Brick()
 
-unload_motor = Motor(port=Port.D)
+unload_motor = Motor(port=Port.C)
 
 
-unload_motor.run_angle(100, 150)
-unload_motor.run_angle(100, -150)
+unload_motor.run_angle(500, 1500)
+unload_motor.run_angle(500, -1500)
+
+
+
+
 

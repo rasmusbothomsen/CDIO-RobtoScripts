@@ -257,7 +257,6 @@ class NavigationController:
         imagecp = image
         #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
         #Men jeg turde ikke pille for meget ved det
-        imagecp = self.scale_image(100)
         imagecp = self.image
         imagecp = cv2.cvtColor(imagecp, cv2.COLOR_BGR2RGB)
         image = imagecp.copy()
@@ -270,7 +269,7 @@ class NavigationController:
             perimeter = cv2.arcLength(cont, True)
             approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
             area = cv2.contourArea(cont)
-            if len(approx) == 3 and 700 < area < 2000:
+            if len(approx) == 3 and 300 < area < 2000:
                 triangle_contour.append(approx)
                 break
 
