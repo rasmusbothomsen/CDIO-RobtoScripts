@@ -17,9 +17,8 @@ class Stateserver:
         self.mesh_image = None
 
     def imageCapture(self):
-        #cam = cv2.VideoCapture(0)
-        #result, image = cam.read()
-        image = cv2.imread("/Users/berfinfloraturan/Desktop/robot2.jpg")
+        cam = cv2.VideoCapture(0)
+        result, image = cam.read()
 
         return image
 
