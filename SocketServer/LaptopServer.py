@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import math
 
-HOST = '192.168.137.1'  # Listen on all available interfaces
+HOST = '0.0.0.0'  # Listen on all available interfaces
 PORT = 1234
 
 # Create a socket object
@@ -22,7 +22,12 @@ print('Server listening on port', PORT)
 
 
 
-image = cv2.imread(r"C:\Users\rasmu\OneDrive\Billeder\Filmrulle\WIN_20230614_15_49_20_Pro.jpg")
+robotPosition = (379,630)
+
+cam = cv2.VideoCapture(0)
+result, image = cam.read()
+
+#image = cv2.imread("/Users/berfinfloraturan/Desktop/robot2.jpg")
 controller = NavigationController(image)
 failed = False
 # This is done in cases where the triangle is not found on the 100% size of the image, then we try again on the 80% size
@@ -39,7 +44,11 @@ robotDirection = controller.getRobotPosition()
 robotPosition = robotDirection["back"]
 
 robotPosition = (379,630)
-robotAngle = controller.getRobotAngle(robotDirection('front')[0], robotDirection('front')[1], robotDirection('back')[0], robotDirection('back')[1])
+lat1 = robotDirection['front'][0]
+long1 = robotDirection['front'][1]
+lat2 = robotDirection['back'][0]
+long2 = robotDirection['back'][1]
+robotAngle = controller.getRobotAngle(lat1, long1, lat2, long2)
 print(robotAngle)
 
 imageCp = controller.image.copy()

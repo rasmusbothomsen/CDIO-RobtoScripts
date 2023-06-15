@@ -267,9 +267,9 @@ class NavigationController:
         triangle_contour = []
         for cont in contours:
             perimeter = cv2.arcLength(cont, True)
-            approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
+            approx = cv2.approxPolyDP(cont, 0.05 * perimeter, True)
             area = cv2.contourArea(cont)
-            if len(approx) == 3 and 300 < area < 2000:
+            if len(approx) == 3 and 1000 < area < 1500:
                 triangle_contour.append(approx)
                 break
 
@@ -294,11 +294,7 @@ class NavigationController:
 
         return triangle_info
     
-    def getRobotAngle(lat1, long1, lat2, long2):
-        #lat1 = triangle_info.get("front")[0]
-        #long1 = triangle_info.get("front")[1]
-        #lat2 = triangle_info.get("back")[0]
-        #long2 = triangle_info.get("back")[1]
+    def getRobotAngle(self, lat1, long1, lat2, long2):
         # Convert latitude and longitude to radians
         lat1 = math.radians(lat1)
         long1 = math.radians(long1)
@@ -367,3 +363,36 @@ class NavigationController:
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+    def choose_goals(self):
+        Goal = {'big goal': [], 'small goal': []}
+        img = self.image
+        img = cv2.cvtColor(np.array(img), cv2.COLOR_RGB2BGR)
+        def onclick(event, x, y):
+            global img, Goal
+
+            if event == cv2.EVENT_LBUTTONDOWN:
+                img = cv2.circle(img, (x, y), 5, (0, 255, 0), -1)  # green circle
+                if not Goal['big goal']:
+                    Goal['big goal'] = [x, y]
+                    cv2.putText(img, "big goal", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                elif not Goal['small goal']:
+                    Goal['small goal'] = [x, y]
+                    cv2.putText(img, "small goal", (x, y), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+                else:
+                    print("Both big and small goals are already set. Resetting...")
+                    Goal = {'big goal': [x, y], 'small goal': []}
+
+        cv2.namedWindow('image_window')
+
+        cv2.setMouseCallback('image_window', onclick)
+
+        while True:
+            cv2.imshow('image_window', img)
+            if cv2.waitKey(20) & 0xFF == ord('q'):
+                break
+
+        cv2.destroyAllWindows()
+
+        print(f'Big goal coordinates: {Goal["big goal"]}')
+        print(f'Small goal coordinates: {Goal["small goal"]}')
