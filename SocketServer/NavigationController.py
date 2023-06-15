@@ -269,7 +269,7 @@ class NavigationController:
             perimeter = cv2.arcLength(cont, True)
             approx = cv2.approxPolyDP(cont, 0.05 * perimeter, True)
             area = cv2.contourArea(cont)
-            if len(approx) == 3 and 1000 < area < 1500:
+            if len(approx) == 3 and 1000 < area < 2500:
                 triangle_contour.append(approx)
                 break
 
@@ -278,22 +278,24 @@ class NavigationController:
         triangle_contour = triangle_contour / (image.shape[1], image.shape[0])
 
         self.triangle_contour = triangle_contour
-       
+
     def getRobotPosition(self):
         triangle_info = {}
-         #revert back to pixel coordinates with scaled images
+
+        # revert back to pixel coordinates with scaled images
         triangle_contour = self.triangle_contour * (self.image.shape[1], self.image.shape[0])
         triangle_contour = np.expand_dims(triangle_contour, axis=1)
         approx = triangle_contour.astype(np.int32)
 
         tip_point, base_points = self.FrontAndBack(approx[:, 0])
         mid_base_point = np.mean(base_points, axis=0).astype(int)
+
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
 
-
         return triangle_info
-    
+
+
     def getRobotAngle(self, lat1, long1, lat2, long2):
         # Convert latitude and longitude to radians
         lat1 = math.radians(lat1)
