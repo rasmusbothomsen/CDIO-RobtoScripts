@@ -268,9 +268,9 @@ class NavigationController:
         triangle_contour = []
         for cont in contours:
             perimeter = cv2.arcLength(cont, True)
-            approx = cv2.approxPolyDP(cont, 0.05 * perimeter, True)
+            approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
             area = cv2.contourArea(cont)
-            if len(approx) == 3 and 1000 < area < 2500:
+            if len(approx) == 3 and area > 200 and  area < 1100:
                 triangle_contour.append(approx)
                 break
 
@@ -318,8 +318,8 @@ class NavigationController:
         bearing = (bearing + 360) % 360
 
         radians = bearing * (math.pi/180)
-        cos = math.cos(radians)*-1
-        sin = math.sin(radians)*-1
+        cos = math.cos(radians)* (-1)
+        sin = math.sin(radians)* (-1)
         robot_cossin = (cos, sin)        
         return robot_cossin
     

@@ -28,5 +28,5 @@ stateserver = Stateserver()
 state = State()
 
 stateserver.initImageAnalysis(state, s)
-while state.anyBallsLeft:
-    stateserver.imageAnalysis(s, state)
+while(True):
+    stateserver.imageAnalysis(s , state)

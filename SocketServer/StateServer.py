@@ -1,4 +1,5 @@
 
+import time
 from NavigationController import NavigationController
 import cv2
 import numpy as np
@@ -19,6 +20,7 @@ class Stateserver:
 
     def imageCapture(self):
         cam = cv2.VideoCapture(0)
+        time.sleep(2)
         result, image = cam.read()
 
         return image
@@ -129,7 +131,7 @@ class Stateserver:
             else:
                 conn.sendall(bytes(f"TurnRight|{robotVectorAngle}",'utf-8'))
 
-                
+
             robotAngleRad = (conn.recv(1024).decode())
             robotAngle = controller.rotate_vector(robotAngle,robotVectorAngle)
             print(f"Robot Return angle: {robotAngle}")
@@ -137,13 +139,13 @@ class Stateserver:
             if(x==(len(path)-1)):
                 break
             conn.sendall(bytes(f"Forward|{vector1Len*(1.567136150234741784037558685446)}",'utf-8'))
-            data = conn.recv(1024)
 
         conn.sendall(bytes("GrabBall",'utf-8'))
-        conn.sendall(bytes("End",'utf-8'))
-        data = conn.recv(1024).decode()
-        if(data == "I am done"):
-            state.commanddone = True
+        data = conn.recv(1024)
+        #conn.sendall(bytes("End",'utf-8'))
+        #data = conn.recv(1024).decode()
+        #if(data == "I am done"):
+            #state.commanddone = True
         conn.close()
 
     def imageAnalysis(self, s, state):

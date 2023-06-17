@@ -1,3 +1,4 @@
+import time
 import numpy as np
 import cv2
 from pathfinding.core.diagonal_movement import DiagonalMovement
@@ -24,7 +25,10 @@ def scaleImage(image,scale):
     return resized_img
 
 
-imagecp = cv2.imread("/Users/frederikhelsoe/Desktop/Robo-Billeder/RoboBillede5.jpg")
+cam = cv2.VideoCapture(0)
+time.sleep(2)
+result, imagecp = cam.read()
+
 imagecp = scaleImage(imagecp,80)
 imagecp = cv2.cvtColor(imagecp,cv2.COLOR_BGR2RGB)
 image = imagecp.copy()
@@ -40,7 +44,7 @@ for cont in contours:
     perimeter = cv2.arcLength(cont, True)
     approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
     area =  cv2.contourArea(cont)
-    if len(approx) == 3 and area > 300 and  area < 600:
+    if len(approx) == 3 and area > 300 and  area < 1000:
         # Triangle detected
         cv2.drawContours(image, [approx], 0, (0, 255, 0), 2)
         x, y, w, h = cv2.boundingRect(approx)

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import socket
+import time
 from newTest import RobotController
 
 
@@ -28,11 +29,7 @@ while True:
         s.sendall(bytes(str(retrunAngle),'utf-8'))
     elif("Forward" in data):
         controller.DriveDistance(float(data.split("|")[1]))
-        s.sendall(bytes("as",'utf-8'))
     elif("GrabBall" in data):
         controller.GrapBall()
-    elif("End" in data):
-        controller.dispose()
-        s.sendall(b'I am done'.encode())
-        break
-    
+        time.sleep(1)
+        s.sendall(bytes("as",'utf-8'))
