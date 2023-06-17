@@ -11,7 +11,6 @@ class NavigationController:
     def __init__(self, image):
         self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
-        self.binary_image = None
 
     def rotate_vector(self,vector, angle_deg):
         # Convert angle from degrees to radians

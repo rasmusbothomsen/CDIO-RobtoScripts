@@ -58,12 +58,11 @@ class Stateserver:
             state.loadOffCount = len(circles) - 6
 
         controller.show_image(ballImage)
-        binary_mesh = controller.create_binary_mesh(50)  # Create binary image
-        cv2.imwrite("meshImage.jpg", binary_mesh)
+        controller.create_binary_mesh(50)
         controller.show_image(controller.image)
         path = controller.find_path(robotPosition,(circles[0][:2]))
 
-        #self.translatePath(s, imageCp, circles, robotAngle, path, controller)
+        self.translatePath(s, imageCp, circles, robotAngle, path, controller)
         print("kommandoer sendt til lobster")
 
     def translatePath(self, s, imageCp, circles, robotAngle, path, controller):
@@ -140,8 +139,8 @@ class Stateserver:
         controller.show_image(imageCp)
         circles,ballImage,orangeBall = controller.find_circles(imageCp,130,130,130)
         controller.show_image(ballImage)
-        binary_mesh = cv2.imread("meshImage.jpg", cv2.IMREAD_GRAYSCALE)  # Load binary mesh image
-        controller.binary_image = binary_mesh
+        controller.create_binary_mesh(50)
+        controller.show_image(controller.image)
 
         if(len(circles) == state.loadOffCount):
                 #path to goal to implement
@@ -154,6 +153,6 @@ class Stateserver:
             state.anyBallsLeft = False
         else:
             path = controller.find_path(robotPosition,(circles[0][:2]))
-            #self.translatePath(s, imageCp, circles, robotAngle, path, controller)
+            self.translatePath(s, imageCp, circles, robotAngle, path, controller)
             print("kommandoer sendt til lobster")
 

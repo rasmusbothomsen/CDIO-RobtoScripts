@@ -6,7 +6,7 @@ import math
 from StateServer import Stateserver
 from StateServer import State
 
-HOST = '0.0.0.0'  # Listen on all available interfaces
+HOST = '172.20.10.2'
 PORT = 1234
 
 # Create a socket object
