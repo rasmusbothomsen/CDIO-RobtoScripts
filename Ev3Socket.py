@@ -2,6 +2,7 @@
 import socket
 from newTest import RobotController
 
+
 HOST = '172.20.10.2'  # Replace with your laptop's IP address
 PORT = 1234
 
@@ -22,7 +23,7 @@ while True:
     if("TurnLeft" in data):
         retrunAngle = controller.Turn(-float(data.split("|")[1]))
         s.sendall(bytes(str(retrunAngle),'utf-8'))
-    if("TurnRight" in data):
+    elif("TurnRight" in data):
         retrunAngle = controller.Turn(float(data.split("|")[1]))
         s.sendall(bytes(str(retrunAngle),'utf-8'))
     elif("Forward" in data):
@@ -32,8 +33,6 @@ while True:
         controller.GrapBall()
     elif("End" in data):
         controller.dispose()
+        s.sendall(b'I am done'.encode())
         break
     
-
-# Close the connection
-s.close()

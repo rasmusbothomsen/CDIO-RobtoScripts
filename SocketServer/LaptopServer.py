@@ -11,7 +11,7 @@ PORT = 1234
 
 # Create a socket object
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
+s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 # Bind the socket to a specific interface and port
 s.bind((HOST, PORT))
 
@@ -28,8 +28,5 @@ stateserver = Stateserver()
 state = State()
 
 stateserver.initImageAnalysis(state, s)
-while(state.anyBallsLeft == True):
-    stateserver.imageAnalysis(s , state)
-
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+while state.anyBallsLeft:
+    stateserver.imageAnalysis(s, state)

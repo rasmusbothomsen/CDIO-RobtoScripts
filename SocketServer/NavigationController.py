@@ -318,8 +318,8 @@ class NavigationController:
         bearing = (bearing + 360) % 360
 
         radians = bearing * (math.pi/180)
-        cos = math.cos(radians)* -1
-        sin = math.sin(radians)
+        cos = math.cos(radians)*-1
+        sin = math.sin(radians)*-1
         robot_cossin = (cos, sin)        
         return robot_cossin
     
@@ -350,10 +350,8 @@ class NavigationController:
 
         self.image = resized_img
 
-    def find_path(self, start, goal):
-        if self.binary_image is None:
-            raise ValueError("Binary image is missing. Run create_binary_mesh() first.")
 
+    def find_path(self, start, goal):
         grid = Grid(matrix=self.binary_image)
         b_first = BestFirst(heuristic=heuristic.euclidean)
         start = grid.node(start[0], start[1])

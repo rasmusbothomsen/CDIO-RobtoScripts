@@ -10,6 +10,7 @@ class State:
     initialCount = 0
     loadOffCount = 0
     anyBallsLeft = True
+    commanddone = False
 
 class Stateserver:
     def __init__(self):
@@ -62,10 +63,11 @@ class Stateserver:
         controller.show_image(controller.image)
         path = controller.find_path(robotPosition,(circles[0][:2]))
 
-        self.translatePath(s, imageCp, circles, robotAngle, path, controller)
+        self.translatePath(s, imageCp, circles, robotAngle, path, controller, state)
+
         print("kommandoer sendt til lobster")
 
-    def translatePath(self, s, imageCp, circles, robotAngle, path, controller):
+    def translatePath(self, s, imageCp, circles, robotAngle, path, controller, state):
         conn, addr = s.accept()
         print('Connected by', addr)
 
@@ -84,7 +86,7 @@ class Stateserver:
             print(f"Angle of robot:{robotAngle}")
             vector1 = controller.VectorOf2Points(path[x],path[x+1])
             print(f"Path vector {vector1}")
-            robotVectorAngle = controller.angle_between(robotAngle,vector1)
+            robotVectorAngle = controller.angle_between(vector1,robotAngle)
             vector1Len = np.linalg.norm(vector1)
             if(x == len(path)-2):
                 print(f"Last run {vector1Len-400} new val {vector1Len-400}")
@@ -93,11 +95,41 @@ class Stateserver:
                 robotVectorAngle=0
             print(f"TurnAngle: {robotVectorAngle}")
             print(f"Vector length: {vector1Len}")
-            if(np.cross(robotAngle,vector1)<0):
+            
+            if (robotAngle[1]<0):
+                if(robotAngle[0]>0):
+                    crossproduct = np.cross(vector1, robotAngle)
+                    print(f"Cross product: {crossproduct}")  
+                elif(robotAngle[0]==0):
+                     crossproduct = np.cross(robotAngle, vector1)
+                else:
+                    crossproduct = np.cross(robotAngle, vector1)
+                    print(f"Cross product: {crossproduct}")  
+            elif (robotAngle[1]>0): 
+                if(robotAngle[0]>0):
+                    crossproduct = np.cross(robotAngle, vector1)
+                    print(f"Cross product: {crossproduct}")  
+                elif(robotAngle[0]==0):
+                    crossproduct = np.cross(vector1, robotAngle)
+                else:
+                    crossproduct = np.cross(vector1, robotAngle)
+                    print(f"Cross product: {crossproduct}")  
+            elif (robotAngle[1] == 0):
+                if(robotAngle[0]>0):
+                    crossproduct = np.cross(vector1, robotAngle)
+                    print(f"Cross product: {crossproduct}")  
+                elif(robotAngle[0]==0):
+                    print("error")
+                else:
+                    crossproduct = np.cross(robotAngle, vector1)
+                    print(f"Cross product: {crossproduct}")  
+            if(crossproduct<0):
                 conn.sendall(bytes(f"TurnLeft|{robotVectorAngle}",'utf-8'))
                 robotVectorAngle = -robotVectorAngle
             else:
                 conn.sendall(bytes(f"TurnRight|{robotVectorAngle}",'utf-8'))
+
+                
             robotAngleRad = (conn.recv(1024).decode())
             robotAngle = controller.rotate_vector(robotAngle,robotVectorAngle)
             print(f"Robot Return angle: {robotAngle}")
@@ -109,6 +141,9 @@ class Stateserver:
 
         conn.sendall(bytes("GrabBall",'utf-8'))
         conn.sendall(bytes("End",'utf-8'))
+        data = conn.recv(1024).decode()
+        if(data == "I am done"):
+            state.commanddone = True
         conn.close()
 
     def imageAnalysis(self, s, state):
@@ -153,6 +188,6 @@ class Stateserver:
             state.anyBallsLeft = False
         else:
             path = controller.find_path(robotPosition,(circles[0][:2]))
-            self.translatePath(s, imageCp, circles, robotAngle, path, controller)
+            self.translatePath(s, imageCp, circles, robotAngle, path, controller, state)
             print("kommandoer sendt til lobster")
 

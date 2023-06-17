@@ -29,7 +29,6 @@ class RobotController(object):
 
     def Turn(self,degrees):
         self.mdiff.turn_degrees(self.TurnSpeed,degrees,use_gyro=True)
-        return 100
 
     def GrapBall(self):
         self.mdiff.on(10,10)
@@ -59,3 +58,4 @@ class RobotController(object):
     
     def dispose(self):
         self.mdiff.odometry_stop()
+        return 100
