@@ -11,6 +11,8 @@ class NavigationController:
     def __init__(self, image):
         self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+        self.large_goal = (0,0)
+        self.small_goal = (0,0)
 
     def rotate_vector(self,vector, angle_deg):
         # Convert angle from degrees to radians
@@ -125,7 +127,7 @@ class NavigationController:
             50,
             param1=50,
             param2=20,
-            minRadius=10,
+            minRadius=5,
             maxRadius=15,
         )
 
@@ -162,7 +164,7 @@ class NavigationController:
     def create_binary_mesh(self,borderSize):
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
-        self.image = self.expand_red_selection(self.image, borderSize)
+        self.image= self.expand_red_selection(self.image, borderSize)
         image_cp = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         binary_image = np.zeros_like(image_cp)
         binary_image[image_cp != 0] = 1
@@ -190,6 +192,8 @@ class NavigationController:
         new_ar.extend(new_dex)
         new_ar.append((goal.x,goal.y))
         return new_ar
+    
+
     def expand_red_selection(self, segmented_image, border_size):
         gray = cv2.cvtColor(segmented_image,cv2.COLOR_RGB2GRAY)
         contours, hierarchy = cv2.findContours(gray, 
@@ -201,6 +205,7 @@ class NavigationController:
         # Expand the mask by the specified number of pixels using dilation
         kernel = np.ones((border_size, border_size), np.uint8)
         mask = cv2.dilate(mask, kernel, iterations=1)
+        
         # Create a new selection based on the expanded mask
         orange = np.zeros_like(segmented_image)
         orange[:, :, 0] = 0
@@ -208,18 +213,48 @@ class NavigationController:
         orange[:, :, 2] = 255
         orange[mask != 0] = segmented_image[mask != 0]
         self.orangCp = orange.copy()
+        largest_contour = max(contours, key=cv2.contourArea)
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        top_left = (x, y)
+        top_right = (x + w, y)
+        bottom_left = (x, y + h)
+        bottom_right = (x + w, y + h)
+        radius = 5
+        color = (0, 0, 255)
+        thickness = -1
+        cv2.circle(orange, top_left, radius, color, thickness)
+        cv2.circle(orange, top_right, radius, color, thickness)
+        cv2.circle(orange, bottom_left, radius, color, thickness)
+        cv2.circle(orange, bottom_right, radius, color, thickness)
+        line_color = (0, 255, 0)
+        line_thickness = 2
+        cv2.line(orange, top_left, bottom_left, line_color, line_thickness)
+
+        cv2.line(orange, top_right, bottom_right, line_color, line_thickness)
+
+        leftmidpoint = ((top_left[0] + bottom_left[0]) // 2, (top_left[1] + bottom_left[1]) // 2)
+        rightmidpoint = ((top_right[0] + bottom_right[0]) // 2, (top_right[1] + bottom_right[1]) // 2)
+
+        circle_radius = 10
+        circle_color = (0, 0, 255)
+        cv2.circle(orange, leftmidpoint, circle_radius, circle_color, -1)
+        cv2.circle(orange, rightmidpoint, circle_radius, circle_color, -1)
+
+        self.large_goal = leftmidpoint
+        self.small_goal = rightmidpoint
+        
         for contour in contours:
-    # Calculate the area of the contour
             area = cv2.contourArea(contour)
-            
+
             # Check if the area is less than 100
-            if area < 100:
+            if area < 400:
                 # Create a mask for the contour region
                 mask = np.zeros_like(gray)
                 
                 # Set the pixels within the contour region to black
                 orange[mask == 255] = [0, 128, 255]  # Set RGB values to black
-            if area > 100 and area < 4000:
+
+            if area > 1500 and area < 3000:
                 # Get the bounding rectangle of the contour
                 x, y, w, h = cv2.boundingRect(contour)
 
@@ -231,6 +266,19 @@ class NavigationController:
 
                 # Draw the square border on the image
                 cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
+            
+            if area < 400:
+                x, y, w, h = cv2.boundingRect(contour)
+                border = 10
+                # Calculate the coordinates for the square border
+                top = max(0, y - border)
+                bottom = min(segmented_image.shape[0], y + h + border)
+                left = max(0, x - border)
+                right = min(segmented_image.shape[1], x + w + border)
+
+                mask = np.zeros_like(gray)
+                orange[mask == 255] = [0, 128, 255]
+
         return orange
     
     def FindVinkel(self,a, b, c):

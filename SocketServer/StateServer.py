@@ -63,6 +63,8 @@ class Stateserver:
         controller.show_image(ballImage)
         controller.create_binary_mesh(50)
         controller.show_image(controller.image)
+        print("large goal coordinates: " + str(controller.large_goal))
+        print("small goal coordinates: " + str(controller.small_goal))
         path = controller.find_path(robotPosition,(circles[0][:2]))
 
         self.translatePath(s, imageCp, circles, robotAngle, path, controller, state)
@@ -180,7 +182,8 @@ class Stateserver:
         controller.show_image(controller.image)
 
         if(len(circles) == state.loadOffCount):
-                #path to goal to implement
+            controller.find_path(robotPosition, controller.small_goal)
+            #translatePath
             print("Time to drop off balls")
         if(len(circles) <= 6):
             state.loadOffCount = 0
