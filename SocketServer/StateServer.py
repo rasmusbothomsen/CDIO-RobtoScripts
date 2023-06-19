@@ -11,6 +11,8 @@ class State:
     initialCount = 0
     loadOffCount = 0
     anyBallsLeft = True
+    bigGoal = (100,100) #Hardcoded values from initial script
+    smallGoal = (200,200) #Hardcoded values from initial script
 
 class Stateserver:
     def __init__(self):
@@ -50,19 +52,24 @@ class Stateserver:
         self.robotPosition = robotDirection["center"]
         self.robotAngle = self.navigationController.VectorOf2Points(robotDirection['back'],robotDirection['front'])
 
-
         imageCp = localImage
         cv2.circle(imageCp,(robotDirection['front']),5,(255,0,0),-1)
         cv2.circle(imageCp,(robotDirection['back']),5,(0,0,255),-1)
 
         circles,ballImage,orangeBall = self.navigationController.find_circles(imageCp,130,130,130)
-        self.runState.initialCount = len(circles)
-        if(self.runState.initialCount <= 6):
-            self.runState.loadOffCount = 0
-        else:
-            self.runState.loadOffCount = len(circles) - 6
 
-        self.path = self.navigationController.find_path(self.robotPosition,(circles[0][:2]))
+        if (self.runState.initialCount == 0):
+            self.runState.initialCount = len(circles)
+            if(self.runState.initialCount <= 6):
+                self.runState.loadOffCount = 0
+            else:
+                self.runState.loadOffCount = len(circles) - 6
+
+        if(len(circles) == self.runState.loadOffCount):
+            self.path = self.navigationController.find_path(self.robotPosition,self.runState.bigGoal)
+        else: 
+            self.path = self.navigationController.find_path(self.robotPosition,(circles[0][:2]))
+        
         for x in range(len(self.path)-1):
             cv2.line(imageCp,self.path[x],self.path[x+1],(255,0,0),2)
         self.navigationController.show_image(imageCp)
@@ -90,9 +97,6 @@ class Stateserver:
     def CloseConnection(self):
         self.conn.sendall(bytes("End",'utf-8'))
         self.conn.close() 
-
-
-
 
     def UpdateState(self):
         if self.runState.initialCount < 1:
