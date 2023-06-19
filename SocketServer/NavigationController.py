@@ -8,9 +8,8 @@ import math
 
 
 class NavigationController:
-    def __init__(self, image):
-        self.image = image
-        self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+    def __init__(self):
+        pass
     def rotate_vector(self,vector, angle_deg):
         # Convert angle from degrees to radians
         angle_rad = math.radians(angle_deg)
@@ -158,7 +157,8 @@ class NavigationController:
 
         return new_circles, image, orange_ball
 
-    def create_binary_mesh(self,borderSize):
+    def create_binary_mesh(self,borderSize,image):
+        self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
         self.image = self.expand_red_selection(self.image, borderSize)
@@ -257,7 +257,6 @@ class NavigationController:
         imagecp = image
         #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
         #Men jeg turde ikke pille for meget ved det
-        imagecp = self.image
         imagecp = cv2.cvtColor(imagecp, cv2.COLOR_BGR2RGB)
         image = imagecp.copy()
 
@@ -293,14 +292,14 @@ class NavigationController:
 
 
         return triangle_info
-    def scale_image(self, scale):
+    def scale_image(self, scale,image):
         scale_percent = scale  # percent of original size
-        width = int(self.image.shape[1] * scale_percent / 100)
-        height = int(self.image.shape[0] * scale_percent / 100)
+        width = int(image.shape[1] * scale_percent / 100)
+        height = int(image.shape[0] * scale_percent / 100)
         dim = (width, height)
 
         # Resize image
-        resized = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+        resized = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
         new_img_size = (resized.shape[1] - (resized.shape[1] % 32), resized.shape[0] - (resized.shape[0] % 32))
         resized_img = cv2.resize(resized, new_img_size)
         lab = cv2.cvtColor(resized_img, cv2.COLOR_BGR2LAB)
@@ -318,12 +317,14 @@ class NavigationController:
         # Convert the LAB image back to RGB color space
         rgb_clahe = cv2.cvtColor(lab_clahe, cv2.COLOR_LAB2BGR)
 
-        self.image = resized_img
+        image = resized_img
+        return image
 
     def find_path(self, start, goal):
        
         
         grid = Grid(matrix=self.binary_image)
+        grid.cleanup()
         b_first = BestFirst(heuristic=heuristic.euclidean)
         start = grid.node(start[0], start[1])
         end = grid.node(goal[0], goal[1])
