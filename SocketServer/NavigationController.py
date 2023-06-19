@@ -91,7 +91,7 @@ class NavigationController:
 
         for x in range(k):
             # Calculate the average red value of the current cluster
-            avg_red = (np.sum(centers[x, :red_channel_idx]) - centers[x, red_channel_idx])
+            avg_red = (np.sum(centers[x, red_channel_idx]))
             if avg_red > max_mask:
                 mask_idx = x
                 max_mask = avg_red
@@ -218,18 +218,18 @@ class NavigationController:
                 
                 # Set the pixels within the contour region to black
                 orange[mask == 255] = [0, 128, 255]  # Set RGB values to black
-            if area > 100 and area < 4000:
-                # Get the bounding rectangle of the contour
-                x, y, w, h = cv2.boundingRect(contour)
+            # if area > 100 and area < 4000:
+            #     # Get the bounding rectangle of the contour
+            #     x, y, w, h = cv2.boundingRect(contour)
 
-                # Calculate the coordinates for the square border
-                top = max(0, y - border_size)
-                bottom = min(segmented_image.shape[0], y + h + border_size)
-                left = max(0, x - border_size)
-                right = min(segmented_image.shape[1], x + w + border_size)
+            #     # Calculate the coordinates for the square border
+            #     top = max(0, y - border_size)
+            #     bottom = min(segmented_image.shape[0], y + h + border_size)
+            #     left = max(0, x - border_size)
+            #     right = min(segmented_image.shape[1], x + w + border_size)
 
-                # Draw the square border on the image
-                cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
+            #     # Draw the square border on the image
+            #     cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
         return orange
 
     def scale_image(self, scale):

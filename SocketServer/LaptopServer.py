@@ -53,8 +53,9 @@ for x in range(len(path)-1):
     print(f"Path vector {vector1}")
     robotVectorAngle = controller.angle_between(robotAngle,vector1)
     vector1Len = np.linalg.norm(vector1)
-    if(x == len(path)-1):
-         vector1Len = vector1Len-100
+    if(x == len(path)-2):
+         print(f"Last run {vector1Len-400} new val {vector1Len-400}")
+         vector1Len = vector1Len-200
     if(robotVectorAngle<=3):
         robotVectorAngle=0
     print(f"TurnAngle: {robotVectorAngle}")
