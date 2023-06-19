@@ -82,7 +82,7 @@ class NavigationController:
         masked_image = masked_image.reshape((-1, 3))
 
         # Get the index of the red channel (assuming RGB color space)
-        red_channel_idx = 2
+        red_channel_idx = 0
 
         # color (i.e cluster) to disable
         max_mask = 0.0
@@ -90,11 +90,12 @@ class NavigationController:
 
         for x in range(k):
             # Calculate the average red value of the current cluster
-            avg_red = (np.sum(centers[x, :red_channel_idx]) - centers[x, red_channel_idx])
+            avg_red = np.sum(centers[x,red_channel_idx]).astype(np.int32) - np.sum(centers[x,red_channel_idx+1:]).astype(np.int32)
             if avg_red > max_mask:
                 mask_idx = x
                 max_mask = avg_red
             if show_clusters:
+                print(f"Mask {x} with avg color {avg_red}")
                 tmpimg = masked_image.copy()
                 tmpimg[labels != x] = [0, 0, 0]
                 tmpimg = tmpimg.reshape(new_image.shape)
@@ -105,7 +106,7 @@ class NavigationController:
 
         masked_image = masked_image.reshape(new_image.shape)
 
-        self.image = masked_image
+        self.image = cv2.cvtColor(masked_image,cv2.COLOR_BGR2RGB)
 
     def find_circles(self,image, blue_thresh, red_thresh, green_thresh):
         # Converts image from RGB to grayscale
@@ -166,6 +167,7 @@ class NavigationController:
         binary_image = np.zeros_like(image_cp)
         binary_image[image_cp != 0] = 1
         self.binary_image = binary_image
+        self.show_image(self.image)
         return binary_image
 
     def find_path_vector_points(self, path, start, goal):
@@ -278,18 +280,21 @@ class NavigationController:
 
         self.triangle_contour = triangle_contour
        
-    def getRobotPosition(self):
+    def getRobotPosition(self,image):
         triangle_info = {}
-         #revert back to pixel coordinates with scaled images
-        triangle_contour = self.triangle_contour * (self.image.shape[1], self.image.shape[0])
+
+        # revert back to pixel coordinates with scaled images
+        triangle_contour = self.triangle_contour * (image.shape[1], image.shape[0])
         triangle_contour = np.expand_dims(triangle_contour, axis=1)
         approx = triangle_contour.astype(np.int32)
 
         tip_point, base_points = self.FrontAndBack(approx[:, 0])
         mid_base_point = np.mean(base_points, axis=0).astype(int)
+        center = tuple(np.mean([tip_point, mid_base_point], axis=0).astype(int))
+
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
-
+        triangle_info['center'] = center
 
         return triangle_info
     def scale_image(self, scale,image):

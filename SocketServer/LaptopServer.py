@@ -13,13 +13,14 @@ mesh_Image = stateServer.imageCapture()
 
 stateServer.InitBinaryMesh(mesh_Image)
 
-stateServer.navigationController.show_image(mesh_Image)
-
-stateServer.DectionAndpathing(mesh_Image)
-
 stateServer.SetUpSocketConnection(HOST,PORT)
 
-stateServer.Translatepath()
+while(stateServer.runState.anyBallsLeft):
+    print("Dection Balls")
+    stateServer.DectionAndpathing(mesh_Image)
+    print("Sending Path")
+    stateServer.Translatepath()
+    mesh_Image = stateServer.imageCapture()
 
 stateServer.CloseConnection()
 

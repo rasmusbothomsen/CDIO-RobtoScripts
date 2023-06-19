@@ -7,6 +7,7 @@ PORT = 1234
 
 # Create a socket object
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+s.settimeout(None)
 controller = RobotController(40,20)
 
 # Connect to the server
@@ -30,8 +31,10 @@ while True:
         s.sendall(bytes("as",'utf-8'))
     elif("GrabBall" in data):
         controller.GrapBall()
+        s.sendall(bytes("Ball",'utf-8'))
     elif("End" in data):
         controller.dispose()
+        print("Ending Now dont know why")
         break
     
 
