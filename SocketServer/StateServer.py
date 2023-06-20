@@ -70,7 +70,7 @@ class Stateserver:
             circles,ballImage,orangeBall = self.navigationController.find_circles(imageCp,130,130,130)
         except:
             circles = []
-
+        print(f"Balls in image{len(circles)}")
         if (self.runState.initialCount == 0):
             self.runState.initialCount = len(circles)
             if(self.runState.initialCount <= 6):

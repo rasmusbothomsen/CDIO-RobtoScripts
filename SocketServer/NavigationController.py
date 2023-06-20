@@ -152,9 +152,9 @@ class NavigationController:
                 mean_colors.append([np.mean(data), circles[idx]])
         mean_colors.sort(key=lambda x: x[0])
         orange_ball = mean_colors[0][1]
-        for x in range(len(new_circles)):
-            if(self.binary_image[new_circles[x][:2]] == 0):
-                new_circles.remove(new_circles[x])
+        for x in range(len(new_circles)-1):
+            if(self.binary_image[new_circles[x][1]][new_circles[x][0]] == 0):
+                del(new_circles[x])
         if new_circles is not None:
             for (x, y, r) in new_circles:
                 cv2.circle(image, (x, y), r, (0, 0, 255), 2)
@@ -196,6 +196,9 @@ class NavigationController:
         new_ar.append((start.x,start.y))
         new_ar.extend(new_dex)
         new_ar.append((goal.x,goal.y))
+
+        if(abs(np.sum(new_ar[-1])-np.sum(new_ar[-2]))< 50):
+            new_ar.remove(new_ar[-2])
         return new_ar
     def expand_red_selection(self, segmented_image, border_size):
         gray = cv2.cvtColor(segmented_image,cv2.COLOR_RGB2GRAY)
@@ -263,23 +266,31 @@ class NavigationController:
 
     def detectRobot(self,image):
         imagecp = image
-        #Skaleret til under 100 giver problemer, fordi billedet er i dårlig kvali, tror gaussian blur driller,
-        #Men jeg turde ikke pille for meget ved det
-        imagecp = cv2.cvtColor(imagecp, cv2.COLOR_BGR2RGB)
-        image = imagecp.copy()
+        # Convert image to HSV color space
+        # hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # Define lower and upper green color thresholds
+        lower_green = np.array([140, 200, 210])  # Adjust these values as per your specific green color
+        upper_green = np.array([180, 245, 240])  # Adjust these values as per your specific green color
+        
+        # Create a binary mask of green pixels
+        mask = cv2.inRange(image, lower_green, upper_green)
+        self.show_image(mask)
+        # Apply morphological operations to enhance the mask
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        # Find contours in the mask
 
-        blurred = cv2.GaussianBlur(image, (5, 5), 0)
-        edges = cv2.Canny(blurred, 50, 150)
-        contours, _ = cv2.findContours(edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        triangle_contour = []
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Iterate over contours to find the green triangle
+        triangle_contour = None
         for cont in contours:
             perimeter = cv2.arcLength(cont, True)
             approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
             area = cv2.contourArea(cont)
             if len(approx) == 3 and 300 < area < 2000:
-                triangle_contour.append(approx)
+                triangle_contour = approx
                 break
-
         #Calculate normalized contour coordinates
         triangle_contour = np.squeeze(triangle_contour)
         triangle_contour = triangle_contour / (image.shape[1], image.shape[0])
