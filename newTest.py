@@ -42,6 +42,7 @@ class RobotController(object):
         if(success):
             self.GrapMotor.on_for_degrees(40,1500)
             self.GrapMotor.on_for_degrees(40,-1500)
+        self.mdiff.on_for_distance(self.driveSpeed,-60)
         
     
     def Unload(self):
