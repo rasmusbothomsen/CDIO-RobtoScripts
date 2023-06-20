@@ -354,39 +354,27 @@ class NavigationController:
         image = resized_img
         return image
 
-    def find_path(self, start, goal, robot_size):
-        # Define buffer zone around the robot
-        buffer_radius = int(robot_size / 2)
-
-        # Create a copy of the binary image
-        binary_image_copy = self.binary_image.copy()
-
-        # Add buffer zone around obstacles
-        obstacles = np.where(binary_image_copy == 1)
-        for obstacle in zip(obstacles[0], obstacles[1]):
-            row, col = obstacle
-            binary_image_copy[max(0, row - buffer_radius):min(binary_image_copy.shape[0], row + buffer_radius),
-                            max(0, col - buffer_radius):min(binary_image_copy.shape[1], col + buffer_radius)] = 1
-
-        grid = Grid(matrix=binary_image_copy)
+    def find_path(self, start, goal):
+       
+        
+        grid = Grid(matrix=self.binary_image)
         grid.cleanup()
-        b_first = BestFirst(heuristic=heuristic.euclidean, time_limit=10)
+        b_first = BestFirst(heuristic=heuristic.euclidean,time_limit=10)
         start = grid.node(start[0], start[1])
         end = grid.node(goal[0], goal[1])
         try:
             path, runs = b_first.find_path(start, end, grid)
         except:
             print("Time out pathing")
-            return None, False
-        print(f"Length of path: {len(path)}")
+            return None,False
+        print(f"length of path {len(path)}")
 
         new_ar = self.find_path_vector_points(path, start, end)
 
-        return new_ar, True
-
+        return new_ar,True
 
     def show_image(self, image):
-        # return
+        return
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
