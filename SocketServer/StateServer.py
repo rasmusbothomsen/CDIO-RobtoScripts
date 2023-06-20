@@ -25,9 +25,10 @@ class Stateserver:
         self.runState = State()
 
     def imageCapture(self):
-        cam = cv2.VideoCapture(0,cv2.CAP_DSHOW)
+        cam = cv2.VideoCapture(1,cv2.CAP_DSHOW)
         cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        sleep(0.5)
         result, image = cam.read()
         image = UndisTest.undistort(image)
         del(cam)
