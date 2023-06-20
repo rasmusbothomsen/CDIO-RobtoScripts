@@ -15,6 +15,10 @@ class State:
         self.DropOffState = False
         self.BigGoal = []
         self.SmallGoal = []
+        self.Q1 = []
+        self.Q2 = []
+        self.Q3 = []
+        self.Q4 = []
 
 
 class Stateserver:
@@ -37,14 +41,23 @@ class Stateserver:
     def InitBinaryMesh(self,image,Test=False):
         imagecp = image.copy()
         imagecp = self.navigationController.scale_image(80,imagecp)
-        self.binaryMesh = self.navigationController.create_binary_mesh(70,imagecp,Test)
+        self.binaryMesh = self.navigationController.create_binary_mesh(60,imagecp,Test)
 
     def SetGoal(self,BigGoal, smallGoal,image):
         self.runState.BigGoal = BigGoal / (image.shape[1], image.shape[0])
         self.runState.SmallGoal = smallGoal / (image.shape[1], image.shape[0])
+
+    def setQuadrants(self,Q1, Q2, Q3, Q4 ,image):
+        self.runState.Q1 = Q1 / (image.shape[1], image.shape[0])
+        self.runState.Q2 = Q2 / (image.shape[1], image.shape[0])
+        self.runState.Q3 = Q3 / (image.shape[1], image.shape[0])
+        self.runState.Q4 = Q4 / (image.shape[1], image.shape[0])
     
     def GetGoals(self,image):
         return (self.runState.BigGoal * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.SmallGoal * (image.shape[1], image.shape[0])).astype(np.int32)
+   
+    def GetQuadrants(self,image):return (self.runState.Q1 * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.Q2 * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.Q3 * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.Q4 * (image.shape[1], image.shape[0])).astype(np.int32)
+   
     def DectionAndpathing(self,image):
         failed = False
         # This is done in cases where the triangle is not found on the 100% size of the image, then we try again on the 80% size

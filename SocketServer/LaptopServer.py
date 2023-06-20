@@ -15,6 +15,8 @@ stateServer.InitBinaryMesh(mesh_Image)
 
 # stateServer.SetUpSocketConnection(HOST,PORT)
 stateServer.SetGoal(np.array([582, 550]),np.array([1464,546]),mesh_Image)
+#Quadrant rækkefølge: Q1, Q2, Q3, Q4
+stateServer.setQuadrants(np.array([0, 0]),np.array([0,0]), np.array([0,0]), np.array([0,0]),mesh_Image)
 while(stateServer.runState.anyBallsLeft):
     print("Dection Balls")
     stateServer.DectionAndpathing(mesh_Image)
