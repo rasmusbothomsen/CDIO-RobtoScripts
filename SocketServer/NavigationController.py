@@ -378,3 +378,23 @@ class NavigationController:
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+    def geteightpoints(punktb, punkta, vectorlength):
+        originalLength = vectorlength
+        value = 5
+        dx = vectorlength / value
+        points = [punktb]
+
+        if vectorlength == 0:
+            return points 
+
+        for d in range(1, value):
+            shortened_length = vectorlength - dx
+            pixel_x = punkta[0] + (shortened_length * (punktb[0] - punkta[0]) / originalLength)
+            pixel_y = punktb[1] + (shortened_length * (punktb[1] - punktb[1]) / originalLength)
+            points.append((pixel_x, pixel_y))
+            vectorlength = shortened_length
+
+        points.append(punkta)
+        return points
