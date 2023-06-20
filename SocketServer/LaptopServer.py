@@ -13,7 +13,7 @@ mesh_Image = stateServer.imageCapture()
 
 stateServer.InitBinaryMesh(mesh_Image)
 
-stateServer.SetUpSocketConnection(HOST,PORT)
+# stateServer.SetUpSocketConnection(HOST,PORT)
 stateServer.SetGoal(np.array([582, 550]),np.array([1464,546]),mesh_Image)
 while(stateServer.runState.anyBallsLeft):
     print("Dection Balls")

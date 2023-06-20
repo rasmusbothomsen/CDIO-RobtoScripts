@@ -82,13 +82,15 @@ class Stateserver:
         x = 0
         while not sucess and x < len(circles):
             if(len(circles) <= self.runState.loadOffCount):
-                self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+                # self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
                 self.runState.DropOffState = True
             else: 
-                self.path,sucess = self.navigationController.find_path(self.robotPosition,(circles[x][:2]),50)
+                self.path = self.navigationController.generate_path_with_obstacles(self.binaryMesh,self.robotPosition,(circles[x][:2]),100)
                 x = x+1
+                sucess = True
                 self.runState.DropOffState = False
         if(not sucess):
+            pass
             self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
 
         
