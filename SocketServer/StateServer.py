@@ -2,6 +2,7 @@ from NavigationController import NavigationController
 import cv2
 import socket
 import numpy as np
+import UndisTest
 from time import sleep
 
 class State:
@@ -28,6 +29,7 @@ class Stateserver:
         cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
         cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         result, image = cam.read()
+        image = UndisTest.undistort(image)
         del(cam)
         return image
 

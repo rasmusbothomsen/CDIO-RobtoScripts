@@ -47,36 +47,26 @@ def save_coefficients(mtx, dist, path):
     # note you *release* you don't close() a FileStorage object
     cv_file.release()
 
-def load_coefficients(path):
-    '''Loads camera matrix and distortion coefficients.'''
-    # FILE_STORAGE_READ
-    cv_file = cv2.FileStorage(path, cv2.FILE_STORAGE_READ)
-
-    # note we also have to specify the type to retrieve other wise we only get a
-    # FileNode object back instead of a matrix
-    camera_matrix = cv_file.getNode('K').mat()
-    dist_matrix = cv_file.getNode('D').mat()
-
-    cv_file.release()
-    return [camera_matrix, dist_matrix]
 
 
-# IMAGES_DIR = r'C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\Chessimages'
-# IMAGES_FORMAT = '.jpg'
-# SQUARE_SIZE = 1.6
-# WIDTH = 6
-# HEIGHT = 9
 
-# # Calibrate 
-# ret, mtx, dist, rvecs, tvecs = calibrate_chessboard(
-#     IMAGES_DIR, 
-#     IMAGES_FORMAT, 
-#     SQUARE_SIZE, 
-#     WIDTH, 
-#     HEIGHT
-# )
+IMAGES_DIR = r'C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\Chessimages'
+IMAGES_FORMAT = '.jpg'
+SQUARE_SIZE = 1.6
+WIDTH = 6
+HEIGHT = 9
 
-# Load coefficients
+# Calibrate 
+ret, mtx, dist, rvecs, tvecs = calibrate_chessboard(
+    IMAGES_DIR, 
+    IMAGES_FORMAT, 
+    SQUARE_SIZE, 
+    WIDTH, 
+    HEIGHT
+)
+
+# save_coefficients(mtx, dist, r'C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\calibration_chessboard.yml')
+
 def scale_image( scale,image):
     scale_percent = scale  # percent of original size
     width = int(image.shape[1] * scale_percent / 100)
@@ -88,11 +78,7 @@ def scale_image( scale,image):
     new_img_size = (resized.shape[1] - (resized.shape[1] % 32), resized.shape[0] - (resized.shape[0] % 32))
     resized_img = cv2.resize(resized, new_img_size)
     return resized_img
-mtx, dist = load_coefficients(r'C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\Chessimages\calibration_chessboard.yml')
-original = cv2.imread(r'C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\Chessimages\3.jpg')
-dst = cv2.undistort(original, mtx, dist, None, None)
-cv2.imshow("hey",scale_image(80,dst))
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+
+
 
 
