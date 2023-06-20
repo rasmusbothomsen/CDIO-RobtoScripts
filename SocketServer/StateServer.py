@@ -8,17 +8,20 @@ from time import sleep
 class State:
     def __init__(self):
         print("State init")
-
         self.initialCount = 0
         self.loadOffCount = 0
         self.anyBallsLeft = True
         self.DropOffState = False
         self.BigGoal = []
         self.SmallGoal = []
+        self.Q1 = []
+        self.Q2 = []
+        self.Q3 = []
+        self.Q4 = []
 
 
 class Stateserver:
-    def __init__(self):
+    def __init__(self,):
         print("Stateserver init")
         self.navigationController = NavigationController()
        
@@ -37,12 +40,20 @@ class Stateserver:
     def InitBinaryMesh(self,image,Test=False):
         imagecp = image.copy()
         imagecp = self.navigationController.scale_image(80,imagecp)
-        self.binaryMesh = self.navigationController.create_binary_mesh(70,imagecp,Test)
+        self.binaryMesh = self.navigationController.create_binary_mesh(60,imagecp,Test)
 
     def SetGoal(self,BigGoal, smallGoal,image):
         self.runState.BigGoal = BigGoal / (image.shape[1], image.shape[0])
         self.runState.SmallGoal = smallGoal / (image.shape[1], image.shape[0])
-    
+
+    def setQuadrants(self, Q1, Q2, Q3, Q4, image):
+        self.runState.Q1 = Q1 / (image.shape[1], image.shape[0])
+        self.runState.Q2 = Q2 / (image.shape[1], image.shape[0])
+        self.runState.Q3 = Q3 / (image.shape[1], image.shape[0])
+        self.runState.Q4 = Q4 / (image.shape[1], image.shape[0])
+
+    def getQuadrants(self, image): return (self.runState.Q1 * (image.shape[1], image.shape[0])).astype(np.int32), (self.runState.Q2 * (image.shape[1], image.shape[0])).astype(np.int32), (self.runState.Q3 * (image.shape[1], image.shape[0])).astype(np.int32), (self.runState.Q1 * (image.shape[1], image.shape[0])).astype(np.int32)
+
     def GetGoals(self,image):
         return (self.runState.BigGoal * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.SmallGoal * (image.shape[1], image.shape[0])).astype(np.int32)
     def DectionAndpathing(self,image):
@@ -72,6 +83,9 @@ class Stateserver:
             circles = []
             print(e)
         print(f"Balls in image{len(circles)}")
+
+        self.MoveToSafePoint(image)
+
         if (self.runState.initialCount == 0):
             self.runState.initialCount = len(circles)
             if(self.runState.initialCount <= 6):
@@ -82,22 +96,81 @@ class Stateserver:
         x = 0
         while not sucess and x < len(circles):
             if(len(circles) <= self.runState.loadOffCount):
-                # self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+                goal = self.runState.BigGoal
                 self.runState.DropOffState = True
             else: 
-                self.path = self.navigationController.generate_path_with_obstacles(self.binaryMesh,self.robotPosition,(circles[x][:2]),100)
+                goal = circles[x][:2]
                 x = x+1
                 sucess = True
                 self.runState.DropOffState = False
         if(not sucess):
-            pass
-            self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+            goal = self.runState.BigGoal
 
-        
+        self.DriveToCircleSafePoint(goal,image)
+        self.path,success = self.navigationController.find_path(self.robotPosition,goal)
         for x in range(len(self.path)-1):
             cv2.line(imageCp,self.path[x],self.path[x+1],(255,0,0),2)
         self.navigationController.show_image(imageCp)
         
+    def MoveToSafePoint(self,image):
+        safePoints = self.getQuadrants(image)
+        self.closestPoint = sorted(np.array(safePoints),key=lambda x:
+                                                  np.linalg.norm(self.navigationController.VectorOf2Points(self.robotPosition,x)))[0]
+        
+        self.path,success = self.navigationController.find_path(self.robotPosition,self.closestPoint)
+        self.DriveRobotToSafePoint()
+
+
+    def DriveToCircleSafePoint(self,cirle,image):
+        safePoints = self.getQuadrants(image)
+        finalPoint = True
+        CircleClosePoint = sorted(np.array(safePoints),key=lambda x:
+                                                  np.linalg.norm(self.navigationController.VectorOf2Points(cirle,x)))
+        CircleClosePoint = CircleClosePoint[0]
+
+        RelativSafePointsRobot  = sorted(np.array(safePoints),key=lambda x:
+                                                  np.linalg.norm(self.navigationController.VectorOf2Points(self.robotPosition,x)))
+        del RelativSafePointsRobot[0]
+        
+        if CircleClosePoint in RelativSafePointsRobot[0] or CircleClosePoint in RelativSafePointsRobot[1]:
+            self.path, success = self.navigationController.find_path(self.robotPosition,CircleClosePoint)
+        else:
+            self.path,success= self.navigationController.find_path(self.robotPosition,RelativSafePointsRobot[0])
+            finalPoint = False
+        
+        if(success):
+            self.DriveRobotToSafePoint()
+        if( not finalPoint):
+            self.DriveToCircleSafePoint(cirle)
+
+
+
+    def DriveRobotToSafePoint(self):
+        for x in range(len(self.path)-1):
+            print(f"Node {x} out of {len(self.path)-1}")
+            print(f"Angle of robot:{self.robotAngle}")
+            vector1 = self.navigationController.VectorOf2Points(self.path[x],self.path[x+1])
+            print(f"path vector {vector1}")
+            robotVectorAngle = self.navigationController.angle_between(self.robotAngle,vector1)
+            vector1Len = np.linalg.norm(vector1)
+            
+            if(robotVectorAngle<=3):
+                robotVectorAngle=0
+            print(f"TurnAngle: {robotVectorAngle}")
+            print(f"Vector length: {vector1Len}")
+            if(np.cross(self.robotAngle,vector1)<0):
+                self.SendCommand(self.Turn(robotVectorAngle,True))
+                robotVectorAngle = -robotVectorAngle
+            else:
+                self.SendCommand(self.Turn(robotVectorAngle,False))
+            robotAngleRad = (self.conn.recv(1024).decode())
+            self.robotAngle = self.navigationController.rotate_vector(self.robotAngle,robotVectorAngle)
+            print(f"Robot Return angle: {self.robotAngle}")
+            print(vector1Len)
+            if(x==(len(self.path)-1)):
+                break
+            self.SendCommand(self.DriveForward(vector1Len))
+            data = self.conn.recv(1024).decode()
 
     def SetUpSocketConnection(self,ip,port):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
