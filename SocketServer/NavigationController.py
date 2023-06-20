@@ -152,7 +152,9 @@ class NavigationController:
                 mean_colors.append([np.mean(data), circles[idx]])
         mean_colors.sort(key=lambda x: x[0])
         orange_ball = mean_colors[0][1]
-
+        for x in range(len(new_circles)):
+            if(self.binary_image[new_circles[x][:2]] == 0):
+                new_circles.remove(new_circles[x])
         if new_circles is not None:
             for (x, y, r) in new_circles:
                 cv2.circle(image, (x, y), r, (0, 0, 255), 2)
