@@ -296,11 +296,11 @@ class NavigationController:
         mid_base_point = np.mean(base_points, axis=0).astype(int)
         center = np.array(np.mean([tip_point, mid_base_point], axis=0).astype(int))
         
-        center = center/(image.shape[1], image.shape[0])
-        center = center * [1920,1080]
-        center = GetCoordinates.calcpos(center,(867,494))
-        center = center / [1920,1080]
-        center = center * (image.shape[1], image.shape[0])
+        # center = center/(image.shape[1], image.shape[0])
+        # center = center * [1920,1080]
+        # center = GetCoordinates.calcpos(center,(867,494))
+        # center = center / [1920,1080]
+        #center = center * (image.shape[1], image.shape[0])
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
         triangle_info['center'] = center.astype(np.int32)

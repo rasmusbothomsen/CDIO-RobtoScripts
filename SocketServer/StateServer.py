@@ -121,7 +121,7 @@ class Stateserver:
         self.conn.sendall(command)
 
     def DriveForward(self,length):
-        return bytes(f"Forward|{length*(1.567136150234741784037558685446)}",'utf-8')
+        return bytes(f"Forward|{length*(1.7030744337)}",'utf-8')
     
     def Turn(self,angle,left):
        if left:
