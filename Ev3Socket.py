@@ -30,8 +30,14 @@ while True:
         controller.DriveDistance(float(data.split("|")[1]))
         s.sendall(bytes("as",'utf-8'))
     elif("GrabBall" in data):
-        controller.GrapBall()
+        controller.GrapBall(float(data.split("|")[1]))
         s.sendall(bytes("Ball",'utf-8'))
+    elif("Unload" in data):
+        controller.Unload()
+        s.sendall(bytes("unload open",'utf-8'))
+    elif("Close" in data):
+        controller.CloseUnLoad()
+        s.sendall(bytes("unload closed",'utf-8'))
     elif("End" in data):
         controller.dispose()
         print("Ending Now dont know why")

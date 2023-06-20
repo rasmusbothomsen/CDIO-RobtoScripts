@@ -8,11 +8,13 @@ class State:
     def __init__(self):
         print("State init")
 
-    initialCount = 0
-    loadOffCount = 0
-    anyBallsLeft = True
-    bigGoal = (100,100) #Hardcoded values from initial script
-    smallGoal = (200,200) #Hardcoded values from initial script
+        self.initialCount = 0
+        self.loadOffCount = 0
+        self.anyBallsLeft = True
+        self.DropOffState = False
+        self.BigGoal = []
+        self.SmallGoal = []
+
 
 class Stateserver:
     def __init__(self):
@@ -29,12 +31,17 @@ class Stateserver:
         del(cam)
         return image
 
-    def InitBinaryMesh(self,image):
+    def InitBinaryMesh(self,image,Test=False):
         imagecp = image.copy()
         imagecp = self.navigationController.scale_image(80,imagecp)
-        self.binaryMesh = self.navigationController.create_binary_mesh(50,imagecp)
+        self.binaryMesh = self.navigationController.create_binary_mesh(50,imagecp,Test)
 
+    def SetGoal(self,BigGoal, smallGoal,image):
+        self.runState.BigGoal = BigGoal / (image.shape[1], image.shape[0])
+        self.runState.SmallGoal = smallGoal / (image.shape[1], image.shape[0])
     
+    def GetGoals(self,image):
+        return (self.runState.BigGoal * (image.shape[1], image.shape[0])).astype(np.int32),(self.runState.SmallGoal * (image.shape[1], image.shape[0])).astype(np.int32)
     def DectionAndpathing(self,image):
         failed = False
         # This is done in cases where the triangle is not found on the 100% size of the image, then we try again on the 80% size
@@ -55,8 +62,11 @@ class Stateserver:
         imageCp = localImage
         cv2.circle(imageCp,(robotDirection['front']),5,(255,0,0),-1)
         cv2.circle(imageCp,(robotDirection['back']),5,(0,0,255),-1)
-
-        circles,ballImage,orangeBall = self.navigationController.find_circles(imageCp,130,130,130)
+        self.navigationController.show_image(imageCp)
+        try:
+            circles,ballImage,orangeBall = self.navigationController.find_circles(imageCp,130,130,130)
+        except:
+            circles = []
 
         if (self.runState.initialCount == 0):
             self.runState.initialCount = len(circles)
@@ -66,9 +76,11 @@ class Stateserver:
                 self.runState.loadOffCount = len(circles) - 6
 
         if(len(circles) == self.runState.loadOffCount):
-            self.path = self.navigationController.find_path(self.robotPosition,self.runState.bigGoal)
+            self.path = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+            self.runState.DropOffState = True
         else: 
             self.path = self.navigationController.find_path(self.robotPosition,(circles[0][:2]))
+            self.runState.DropOffState = False
         
         for x in range(len(self.path)-1):
             cv2.line(imageCp,self.path[x],self.path[x+1],(255,0,0),2)
@@ -101,9 +113,20 @@ class Stateserver:
     def UpdateState(self):
         if self.runState.initialCount < 1:
             self.runState.anyBallsLeft = False
-        
         print(self.runState.initialCount)
 
+    def SendCommand(self,command):
+        self.conn.sendall(command)
+
+    def DriveForward(self,length):
+        return bytes(f"Forward|{length*(1.567136150234741784037558685446)}",'utf-8')
+    
+    def Turn(self,angle,left):
+       if left:
+           return bytes(f"TurnLeft|{angle}",'utf-8')
+       else:
+           return bytes(f"TurnRight|{angle}",'utf-8')
+           
     def Translatepath(self):
         for x in range(len(self.path)-1):
             print(f"Node {x} out of {len(self.path)-1}")
@@ -112,27 +135,50 @@ class Stateserver:
             print(f"path vector {vector1}")
             robotVectorAngle = self.navigationController.angle_between(self.robotAngle,vector1)
             vector1Len = np.linalg.norm(vector1)
-            if(x == len(self.path)-2):
-                print(f"Last run {vector1Len/4} new val {vector1Len/4}")
-                vector1Len = vector1Len/4
+            
             if(robotVectorAngle<=3):
                 robotVectorAngle=0
             print(f"TurnAngle: {robotVectorAngle}")
             print(f"Vector length: {vector1Len}")
             if(np.cross(self.robotAngle,vector1)<0):
-                self.conn.sendall(bytes(f"TurnLeft|{robotVectorAngle}",'utf-8'))
+                self.SendCommand(self.Turn(robotVectorAngle,True))
                 robotVectorAngle = -robotVectorAngle
             else:
-                self.conn.sendall(bytes(f"TurnRight|{robotVectorAngle}",'utf-8'))
+                self.SendCommand(self.Turn(robotVectorAngle,False))
             robotAngleRad = (self.conn.recv(1024).decode())
             self.robotAngle = self.navigationController.rotate_vector(self.robotAngle,robotVectorAngle)
             print(f"Robot Return angle: {self.robotAngle}")
             print(vector1Len)
+            if(x == len(self.path)-2):
+                print(f"Last run {vector1Len/4} new val {vector1Len/4}")
+                if self.runState.DropOffState:
+                    vector1Len = vector1Len*0.75
+                else:
+                    break
             if(x==(len(self.path)-1)):
                 break
-            self.conn.sendall(bytes(f"Forward|{vector1Len*(1.567136150234741784037558685446)}",'utf-8'))
+            self.SendCommand(self.DriveForward(vector1Len))
             data = self.conn.recv(1024).decode()
 
-        self.conn.sendall(bytes("GrabBall",'utf-8'))
+        if(self.runState.DropOffState):
+            robotVectorAngle = self.navigationController.angle_between(self.robotAngle,(1,0))
+            if(np.cross(self.robotAngle,(1,0))<0):
+                self.SendCommand(self.Turn(robotVectorAngle,True))
+                robotVectorAngle = -robotVectorAngle
+            else:
+                self.SendCommand(self.Turn(robotVectorAngle,False))
+            self.conn.recv(1024)
+            
+            self.SendCommand(self.DriveForward(-20))
+            self.conn.recv(1024)
+            self.SendCommand(bytes("Unload",'utf-8'))
+            sleep(2)
+            self.conn.recv(1024)
+            self.SendCommand(bytes("Close",'utf-8'))
+            self.runState.initialCount = 0
+            
+            
+            
+        else:
+            self.conn.sendall(bytes(f"GrabBall|{vector1Len*1.567136150234741784037558685446}",'utf-8'))
         self.conn.recv(1024)
-        self.UpdateState()

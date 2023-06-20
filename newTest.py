@@ -31,16 +31,26 @@ class RobotController(object):
         self.mdiff.turn_degrees(self.TurnSpeed,degrees,use_gyro=True)
         return 100
 
-    def GrapBall(self):
-        self.mdiff.on(10,10)
-        while self.UltraSensor.distance_centimeters > 7:
+    def GrapBall(self,distance):
+        success = True
+        self.mdiff.on_for_distance(self.driveSpeed/2,distance,block=False)
+        while self.UltraSensor.distance_centimeters > 7 and success:
+            if not self.mdiff.is_running:
+                success = False
             print(self.UltraSensor.distance_centimeters)
-            pass
         self.mdiff.off()
-        self.GrapMotor.on_for_degrees(40,1500)
-        self.GrapMotor.on_for_degrees(40,-1500)
+        if(success):
+            self.GrapMotor.on_for_degrees(40,1500)
+            self.GrapMotor.on_for_degrees(40,-1500)
         
-            
+    
+    def Unload(self):
+        self.Unloader.on_for_degrees(20,150,block=False)
+
+    def CloseUnLoad(self):
+        self.Unloader.on_for_degrees(20,-150,block=False)
+
+        
         
         
     async def LookForBall(self):

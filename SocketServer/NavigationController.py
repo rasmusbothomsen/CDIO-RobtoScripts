@@ -5,6 +5,7 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder.best_first import BestFirst
 from pathfinding.core import heuristic, diagonal_movement
 import math
+import GetCoordinates
 
 
 class NavigationController:
@@ -158,14 +159,17 @@ class NavigationController:
 
         return new_circles, image, orange_ball
 
-    def create_binary_mesh(self,borderSize,image):
+    def create_binary_mesh(self,borderSize,image,Test):
         self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
         self.image = self.expand_red_selection(self.image, borderSize)
         image_cp = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         binary_image = np.zeros_like(image_cp)
-        binary_image[image_cp != 0] = 1
+        if(Test):
+            binary_image[image_cp] = 1
+        else:
+            binary_image[image_cp != 0] = 1
         self.binary_image = binary_image
         self.show_image(self.image)
         return binary_image
@@ -294,7 +298,7 @@ class NavigationController:
 
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
-        triangle_info['center'] = center
+        triangle_info['center'] = GetCoordinates.getRealRobotPos(center,(image.shape[1]/2,image.shape[0]/2))
 
         return triangle_info
     def scale_image(self, scale,image):
