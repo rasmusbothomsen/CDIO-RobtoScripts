@@ -59,7 +59,7 @@ def calcpos(robot, centrum):
     robotb = robotheight * math.tan(math.radians(robotlastangle))
 
     vector_length = math.sqrt(a**2 + b**2)
-    shortened_length = (vector_length - robotb)*0.8
+    shortened_length = (vector_length - robotb)*0.9
     pixel_x = centrum[0] + (shortened_length * (robot[0] - centrum[0]) / vector_length)
     pixel_y = centrum[1] + (shortened_length * (robot[1] - centrum[1]) / vector_length)
 

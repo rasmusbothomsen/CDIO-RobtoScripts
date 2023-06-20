@@ -14,12 +14,16 @@ mesh_Image = stateServer.imageCapture()
 stateServer.InitBinaryMesh(mesh_Image)
 
 stateServer.SetUpSocketConnection(HOST,PORT)
-stateServer.SetGoal(np.array([500,558]),np.array([1464,546]),mesh_Image)
+stateServer.SetGoal(np.array([582, 550]),np.array([1464,546]),mesh_Image)
 while(stateServer.runState.anyBallsLeft):
     print("Dection Balls")
     stateServer.DectionAndpathing(mesh_Image)
     print("Sending Path")
-    stateServer.Translatepath()
+    try:
+        stateServer.Translatepath()
+    except Exception as e:
+        print(e)
+
     mesh_Image = stateServer.imageCapture()
 
 stateServer.CloseConnection()

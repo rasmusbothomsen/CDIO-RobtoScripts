@@ -37,7 +37,7 @@ class Stateserver:
     def InitBinaryMesh(self,image,Test=False):
         imagecp = image.copy()
         imagecp = self.navigationController.scale_image(80,imagecp)
-        self.binaryMesh = self.navigationController.create_binary_mesh(60,imagecp,Test)
+        self.binaryMesh = self.navigationController.create_binary_mesh(70,imagecp,Test)
 
     def SetGoal(self,BigGoal, smallGoal,image):
         self.runState.BigGoal = BigGoal / (image.shape[1], image.shape[0])
@@ -68,8 +68,9 @@ class Stateserver:
         self.navigationController.show_image(imageCp)
         try:
             circles,ballImage,orangeBall = self.navigationController.find_circles(imageCp,130,130,130)
-        except:
+        except Exception as e:
             circles = []
+            print(e)
         print(f"Balls in image{len(circles)}")
         if (self.runState.initialCount == 0):
             self.runState.initialCount = len(circles)
@@ -77,13 +78,19 @@ class Stateserver:
                 self.runState.loadOffCount = 0
             else:
                 self.runState.loadOffCount = len(circles) - 6
+        sucess = False
+        x = 0
+        while not sucess and x < len(circles):
+            if(len(circles) <= self.runState.loadOffCount):
+                self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+                self.runState.DropOffState = True
+            else: 
+                self.path,sucess = self.navigationController.find_path(self.robotPosition,(circles[x][:2]),50)
+                x = x+1
+                self.runState.DropOffState = False
+        if(not sucess):
+            self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
 
-        if(len(circles) == self.runState.loadOffCount):
-            self.path = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
-            self.runState.DropOffState = True
-        else: 
-            self.path = self.navigationController.find_path(self.robotPosition,(circles[0][:2]))
-            self.runState.DropOffState = False
         
         for x in range(len(self.path)-1):
             cv2.line(imageCp,self.path[x],self.path[x+1],(255,0,0),2)

@@ -13,8 +13,13 @@ ev3 = EV3Brick()
 
 unload_motor = Motor(port=Port.B)
 
+# unload_motor.run_angle(100, 150)
 
-unload_motor.run_angle(100, -150)
+# sleep(2)
+
+unload_motor.run_angle(100, -50)
+
+
 
 
 

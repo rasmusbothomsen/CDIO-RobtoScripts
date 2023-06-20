@@ -150,11 +150,18 @@ class NavigationController:
             if np.mean(data) >= red_thresh:
                 new_circles.append(circles[idx])
                 mean_colors.append([np.mean(data), circles[idx]])
-        mean_colors.sort(key=lambda x: x[0])
-        orange_ball = mean_colors[0][1]
-        for x in range(len(new_circles)-1):
+        try:
+            mean_colors.sort(key=lambda x: x[0])
+            orange_ball = mean_colors[0][1]
+        except Exception as e:
+            print(e)
+        circlen = len(new_circles)-1
+        for x in range(circlen):
+            if(x >= circlen):
+                break
             if(self.binary_image[new_circles[x][1]][new_circles[x][0]] == 0):
                 del(new_circles[x])
+                circlen = circlen-1
         if new_circles is not None:
             for (x, y, r) in new_circles:
                 cv2.circle(image, (x, y), r, (0, 0, 255), 2)
@@ -179,9 +186,9 @@ class NavigationController:
     def find_path_vector_points(self, path, start, goal):
         vector_points = []
 
-        for idx in range(len(path) - 4):
-            x = path[idx][0] - path[idx + 4][0]
-            y = path[idx][1] - path[idx + 4][1]
+        for idx in range(len(path) - 3):
+            x = path[idx][0] - path[idx + 3][0]
+            y = path[idx][1] - path[idx + 3][1]
             vector_points.append((x, y))
 
         new_dex = []
@@ -190,14 +197,14 @@ class NavigationController:
                 res = 100
             else:
                 res =  sum(tuple(map(lambda i, j: i - j, new_dex[-1], path[idx])))
-            if (vector_points[idx] != vector_points[idx + 1]) and res > 10:
+            if (vector_points[idx] != vector_points[idx + 1]) and res > 50:
                 new_dex.append(path[idx])
         new_ar = []
         new_ar.append((start.x,start.y))
         new_ar.extend(new_dex)
         new_ar.append((goal.x,goal.y))
 
-        if(abs(np.sum(new_ar[-1])-np.sum(new_ar[-2]))< 50):
+        if(abs(np.sum(new_ar[-1])-np.sum(new_ar[-2]))< 100):
             new_ar.remove(new_ar[-2])
         return new_ar
     def expand_red_selection(self, segmented_image, border_size):
@@ -309,11 +316,11 @@ class NavigationController:
         mid_base_point = np.mean(base_points, axis=0).astype(int)
         center = np.array(np.mean([tip_point, mid_base_point], axis=0).astype(int))
         
-        # center = center/(image.shape[1], image.shape[0])
-        # center = center * [1920,1080]
-        # center = GetCoordinates.calcpos(center,(867,494))
-        # center = center / [1920,1080]
-        #center = center * (image.shape[1], image.shape[0])
+        center = center/(image.shape[1], image.shape[0])
+        center = center * [1920,1080]
+        center = GetCoordinates.calcpos(center,(1920/2,1080/2))
+        center = center / [1920,1080]
+        center = center * (image.shape[1], image.shape[0])
         triangle_info['front'] = tuple(tip_point)
         triangle_info['back'] = tuple(mid_base_point)
         triangle_info['center'] = center.astype(np.int32)
@@ -347,22 +354,39 @@ class NavigationController:
         image = resized_img
         return image
 
-    def find_path(self, start, goal):
-       
-        
-        grid = Grid(matrix=self.binary_image)
+    def find_path(self, start, goal, robot_size):
+        # Define buffer zone around the robot
+        buffer_radius = int(robot_size / 2)
+
+        # Create a copy of the binary image
+        binary_image_copy = self.binary_image.copy()
+
+        # Add buffer zone around obstacles
+        obstacles = np.where(binary_image_copy == 1)
+        for obstacle in zip(obstacles[0], obstacles[1]):
+            row, col = obstacle
+            binary_image_copy[max(0, row - buffer_radius):min(binary_image_copy.shape[0], row + buffer_radius),
+                            max(0, col - buffer_radius):min(binary_image_copy.shape[1], col + buffer_radius)] = 1
+
+        grid = Grid(matrix=binary_image_copy)
         grid.cleanup()
-        b_first = BestFirst(heuristic=heuristic.euclidean)
+        b_first = BestFirst(heuristic=heuristic.euclidean, time_limit=10)
         start = grid.node(start[0], start[1])
         end = grid.node(goal[0], goal[1])
-        path, runs = b_first.find_path(start, end, grid)
-        print(f"length of path {len(path)}")
+        try:
+            path, runs = b_first.find_path(start, end, grid)
+        except:
+            print("Time out pathing")
+            return None, False
+        print(f"Length of path: {len(path)}")
 
         new_ar = self.find_path_vector_points(path, start, end)
 
-        return new_ar
+        return new_ar, True
+
 
     def show_image(self, image):
+        # return
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
