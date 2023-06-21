@@ -2,7 +2,7 @@
 import socket
 from newTest import RobotController
 
-HOST = '192.168.137.1'  # Replace with your laptop's IP address
+HOST = '172.20.10.1'  # Replace with your laptop's IP address
 PORT = 1234
 
 # Create a socket object

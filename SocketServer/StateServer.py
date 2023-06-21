@@ -29,9 +29,7 @@ class Stateserver:
         self.runState = State()
 
     def imageCapture(self):
-        cam = cv2.VideoCapture(1,cv2.CAP_DSHOW)
-        cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
-        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+        cam = cv2.VideoCapture(0)
         sleep(0.5)
         result, image = cam.read()
         image = UndisTest.undistort(image)
@@ -87,24 +85,23 @@ class Stateserver:
         print(f"Balls in image{len(circles)}")
         if (self.runState.initialCount == 0):
             self.runState.initialCount = len(circles)
-            if(self.runState.initialCount <= 6):
+            if(self.runState.initialCount <= 3):
                 self.runState.loadOffCount = 0
             else:
-                self.runState.loadOffCount = len(circles) - 6
+                self.runState.loadOffCount = len(circles) - 3
         sucess = False
         x = 0
         while not sucess and x < len(circles):
             if(len(circles) <= self.runState.loadOffCount):
-                # self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+                self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
                 self.runState.DropOffState = True
             else: 
-                self.path = self.navigationController.generate_path_with_obstacles(self.binaryMesh,self.robotPosition,(circles[x][:2]),100)
+                self.path,sucess = self.navigationController.find_path(self.robotPosition,(circles[x][:2]))                
                 x = x+1
-                sucess = True
                 self.runState.DropOffState = False
         if(not sucess):
-            pass
             self.path,sucess = self.navigationController.find_path(self.robotPosition,self.GetGoals(localImage)[0])
+            self.runState.DropOffState = True
 
         
         for x in range(len(self.path)-1):
