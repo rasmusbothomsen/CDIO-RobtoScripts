@@ -21,6 +21,8 @@ stateServer.SetGoal(np.array([520,505]),np.array([1501,505]),mesh_Image)
 while(stateServer.runState.anyBallsLeft):
     print("Dection Balls")
     stateServer.DectionAndpathing(mesh_Image)
+    if(stateServer.runState.DropOffState == True):
+        stateServer.initUnload()
     print("Sending Path")
     try:
         stateServer.Translatepath()

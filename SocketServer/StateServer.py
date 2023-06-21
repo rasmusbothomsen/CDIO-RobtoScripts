@@ -41,7 +41,14 @@ class Stateserver:
     def InitBinaryMesh(self,image,Test=False):
         imagecp = image.copy()
         imagecp = self.navigationController.scale_image(80,imagecp)
-        self.binaryMesh = self.navigationController.create_binary_mesh(60,imagecp,Test)
+        self.binaryMesh = self.navigationController.create_binary_mesh(80,imagecp,Test)
+
+    def initUnload(self, Test=False):
+        img = self.imageCapture()
+        imagecp = img.copy()
+        imagecp = self.navigationController.scale_image(80,imagecp)
+        binaryMesh = self.navigationController.create_binary_mesh(60,imagecp,Test)
+        self.DectionAndpathing(binaryMesh)
 
     def SetGoal(self,BigGoal, smallGoal,image):
         self.runState.BigGoal = BigGoal / (image.shape[1], image.shape[0])
