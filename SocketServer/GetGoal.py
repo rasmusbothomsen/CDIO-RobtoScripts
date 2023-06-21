@@ -1,10 +1,13 @@
 import time
 import cv2
 import numpy as np
+import UndisTest
 
 def choose_goals():
     Goals = {'big_goal': [], 'small_goal': []}
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
     time.sleep(2)
     result, img = cam.read()
     

@@ -29,7 +29,9 @@ class Stateserver:
         self.runState = State()
 
     def imageCapture(self):
-        cam = cv2.VideoCapture(0)
+        cam = cv2.VideoCapture(1,cv2.CAP_DSHOW)
+        cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+        cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
         sleep(0.5)
         result, image = cam.read()
         image = UndisTest.undistort(image)
@@ -174,7 +176,7 @@ class Stateserver:
             if(x == len(self.path)-2):
                 print(f"Last run {vector1Len/4} new val {vector1Len/4}")
                 if self.runState.DropOffState:
-                    vector1Len = vector1Len*0.75
+                    vector1Len = vector1Len
                 else:
                     break
             if(x==(len(self.path)-1)):

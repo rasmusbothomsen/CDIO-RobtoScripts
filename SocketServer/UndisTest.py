@@ -13,7 +13,7 @@ def load_coefficients(path):
     cv_file.release()
     return [camera_matrix, dist_matrix]
 def undistort(image):
-    mtx, dist = load_coefficients("/Users/berfinfloraturan/Documents/GitHub/CDIO-RobtoScripts/calibration_chessboard.yml")
+    mtx, dist = load_coefficients(r"C:\Users\rasmu\OneDrive\Skrivebord\CDIO\RobotProject\CDIO-RobtoScripts\ArucoTet\calibration_chessboard.yml")
     original = image
     dst = cv2.undistort(original, mtx, dist, None, None)
     return dst

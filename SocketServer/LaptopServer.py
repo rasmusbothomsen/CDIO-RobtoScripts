@@ -5,7 +5,7 @@ import cv2
 import numpy as np
 import math
 
-HOST = '172.20.10.1'  # Listen on all available interfaces
+HOST = '192.168.137.1'  # Listen on all available interfaces
 PORT = 1234
 stateServer = Stateserver()
 
@@ -14,9 +14,10 @@ mesh_Image = stateServer.imageCapture()
 stateServer.InitBinaryMesh(mesh_Image)
 
 stateServer.SetUpSocketConnection(HOST,PORT)
-stateServer.SetGoal(np.array([505,510]),np.array([1501,505]),mesh_Image)
+stateServer.SetGoal(np.array([520,505]),np.array([1501,505]),mesh_Image)
 #Quadrant rækkefølge: Q1, Q2, Q3, Q4
 #stateServer.setQuadrants(np.array([0, 0]),np.array([0,0]), np.array([0,0]), np.array([0,0]),mesh_Image)
+
 while(stateServer.runState.anyBallsLeft):
     print("Dection Balls")
     stateServer.DectionAndpathing(mesh_Image)
