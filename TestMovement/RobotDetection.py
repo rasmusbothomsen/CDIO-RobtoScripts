@@ -26,7 +26,6 @@ def FindVinkel(a, b, c):
     return angle
 
 def FrontAndBack(vertices):
-    #Finder vinklerne (chatten)
     angles = [FindVinkel(vertices[(i + 1) % 3], vertices[i], vertices[(i + 2) % 3]) for i in range(3)]
     #finder den mindste vinkel
     tip_index = np.argmin(angles)
@@ -52,6 +51,7 @@ def detectRobot(image_path):
 
     for cont in contours:
         perimeter = cv2.arcLength(cont, True)
+        #https://www.educba.com/opencv-approxpolydp/
         approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
         area = cv2.contourArea(cont)
         if len(approx) == 3 and area >300:

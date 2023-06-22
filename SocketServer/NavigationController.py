@@ -34,7 +34,9 @@ class NavigationController:
         v1_u = self.unit_vector(v1)
         v2_u = self.unit_vector(v2)
         return np.rad2deg(np.arccos(np.clip(np.dot(v1_u, v2_u), -1.0, 1.0)))
-
+    
+#Fra kursus applied machine learning and big data kursus nr 62533
+#https://github.com/rasmusbothomsen/ClusteringCdio
     def scale_image(self, scale):
         scale_percent = scale  # percent of original size
         width = int(self.image.shape[1] * scale_percent / 100)
@@ -60,6 +62,8 @@ class NavigationController:
         # Convert the LAB image back to RGB color space
         self.image = cv2.cvtColor(lab_clahe, cv2.COLOR_LAB2RGB)
 
+#Fra kursus applied machine learning and big data kursus nr 62533
+#https://github.com/rasmusbothomsen/ClusteringCdio
     def k_means(self, show_clusters=False):
         np.random.seed(0)
         new_image = self.image
@@ -260,7 +264,6 @@ class NavigationController:
         return angle
 
     def FrontAndBack(self,vertices):
-        #Finder vinklerne (chatten)
         angles = [self.FindVinkel(vertices[(i + 1) % 3], vertices[i], vertices[(i + 2) % 3]) for i in range(3)]
         #finder den mindste vinkel
         tip_index = np.argmin(angles)
