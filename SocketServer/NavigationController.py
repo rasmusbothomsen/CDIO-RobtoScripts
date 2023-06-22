@@ -5,12 +5,12 @@ from pathfinding.core.grid import Grid
 from pathfinding.finder.best_first import BestFirst
 from pathfinding.core import heuristic, diagonal_movement
 import math
+import GetCoordinates
 
 
 class NavigationController:
-    def __init__(self, image):
-        self.image = image
-        self.image = cv2.cvtColor(self.image, cv2.COLOR_BGR2RGB)
+    def __init__(self):
+        pass
     def rotate_vector(self,vector, angle_deg):
         # Convert angle from degrees to radians
         angle_rad = math.radians(angle_deg)
@@ -83,7 +83,7 @@ class NavigationController:
         masked_image = masked_image.reshape((-1, 3))
 
         # Get the index of the red channel (assuming RGB color space)
-        red_channel_idx = 2
+        red_channel_idx = 0
 
         # color (i.e cluster) to disable
         max_mask = 0.0
@@ -91,11 +91,12 @@ class NavigationController:
 
         for x in range(k):
             # Calculate the average red value of the current cluster
-            avg_red = (np.sum(centers[x, :red_channel_idx]) - centers[x, red_channel_idx])
+            avg_red = np.sum(centers[x,red_channel_idx]).astype(np.int32) - np.sum(centers[x,red_channel_idx+1:]).astype(np.int32)
             if avg_red > max_mask:
                 mask_idx = x
                 max_mask = avg_red
             if show_clusters:
+                print(f"Mask {x} with avg color {avg_red}")
                 tmpimg = masked_image.copy()
                 tmpimg[labels != x] = [0, 0, 0]
                 tmpimg = tmpimg.reshape(new_image.shape)
@@ -106,7 +107,7 @@ class NavigationController:
 
         masked_image = masked_image.reshape(new_image.shape)
 
-        self.image = masked_image
+        self.image = cv2.cvtColor(masked_image,cv2.COLOR_BGR2RGB)
 
     def find_circles(self,image, blue_thresh, red_thresh, green_thresh):
         # Converts image from RGB to grayscale
@@ -149,31 +150,45 @@ class NavigationController:
             if np.mean(data) >= red_thresh:
                 new_circles.append(circles[idx])
                 mean_colors.append([np.mean(data), circles[idx]])
-        mean_colors.sort(key=lambda x: x[0])
-        orange_ball = mean_colors[0][1]
-
+        try:
+            mean_colors.sort(key=lambda x: x[0])
+            orange_ball = mean_colors[0][1]
+        except Exception as e:
+            print(e)
+        circlen = len(new_circles)-1
+        for x in range(circlen):
+            if(x >= circlen):
+                break
+            if(self.binary_image[new_circles[x][1]][new_circles[x][0]] == 0):
+                del(new_circles[x])
+                circlen = circlen-1
         if new_circles is not None:
             for (x, y, r) in new_circles:
                 cv2.circle(image, (x, y), r, (0, 0, 255), 2)
 
         return new_circles, image, orange_ball
 
-    def create_binary_mesh(self,borderSize):
+    def create_binary_mesh(self,borderSize,image,Test):
+        self.image = image
         self.image = cv2.cvtColor(self.image, cv2.COLOR_RGB2BGR)
         image = self.k_means(False)
         self.image = self.expand_red_selection(self.image, borderSize)
         image_cp = cv2.cvtColor(self.image, cv2.COLOR_BGR2GRAY)
         binary_image = np.zeros_like(image_cp)
-        binary_image[image_cp != 0] = 1
+        if(Test):
+            binary_image[image_cp] = 1
+        else:
+            binary_image[image_cp != 0] = 1
         self.binary_image = binary_image
+        self.show_image(self.image)
         return binary_image
 
     def find_path_vector_points(self, path, start, goal):
         vector_points = []
 
-        for idx in range(len(path) - 4):
-            x = path[idx][0] - path[idx + 4][0]
-            y = path[idx][1] - path[idx + 4][1]
+        for idx in range(len(path) - 3):
+            x = path[idx][0] - path[idx + 3][0]
+            y = path[idx][1] - path[idx + 3][1]
             vector_points.append((x, y))
 
         new_dex = []
@@ -182,12 +197,15 @@ class NavigationController:
                 res = 100
             else:
                 res =  sum(tuple(map(lambda i, j: i - j, new_dex[-1], path[idx])))
-            if (vector_points[idx] != vector_points[idx + 1]) and res > 10:
+            if (vector_points[idx] != vector_points[idx + 1]) and res > 50:
                 new_dex.append(path[idx])
         new_ar = []
         new_ar.append((start.x,start.y))
         new_ar.extend(new_dex)
         new_ar.append((goal.x,goal.y))
+
+        if(abs(np.sum(new_ar[-1])-np.sum(new_ar[-2]))< 100):
+            new_ar.remove(new_ar[-2])
         return new_ar
     def expand_red_selection(self, segmented_image, border_size):
         gray = cv2.cvtColor(segmented_image,cv2.COLOR_RGB2GRAY)
@@ -231,15 +249,91 @@ class NavigationController:
                 # Draw the square border on the image
                 cv2.rectangle(orange, (left, top), (right, bottom), (0, 0, 0), -1)
         return orange
+    
+    def FindVinkel(self,a, b, c):
+        ba = a - b
+        bc = c - b
 
-    def scale_image(self, scale):
+        cosine_angle = np.dot(ba, bc) / (np.linalg.norm(ba) * np.linalg.norm(bc))
+        angle = np.arccos(cosine_angle)
+
+        return angle
+
+    def FrontAndBack(self,vertices):
+        #Finder vinklerne (chatten)
+        angles = [self.FindVinkel(vertices[(i + 1) % 3], vertices[i], vertices[(i + 2) % 3]) for i in range(3)]
+        #finder den mindste vinkel
+        tip_index = np.argmin(angles)
+        #Finder koordinat af den
+        tip_point = vertices[tip_index]
+        #Giver de to sidste vinkel koordinater tilbage, så midten af deres linje kan findes og danne "back" koordinat
+        base_points = np.delete(vertices, tip_index, axis=0)
+
+        return tip_point, base_points
+
+    def detectRobot(self,image):
+        imagecp = image
+        # Convert image to HSV color space
+        # hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+        # Define lower and upper green color thresholds
+        lower_green = np.array([140, 200, 210])  # Adjust these values as per your specific green color
+        upper_green = np.array([180, 245, 240])  # Adjust these values as per your specific green color
+        
+        # Create a binary mask of green pixels
+        mask = cv2.inRange(image, lower_green, upper_green)
+        self.show_image(mask)
+        # Apply morphological operations to enhance the mask
+        kernel = np.ones((5, 5), np.uint8)
+        mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+        # Find contours in the mask
+
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        # Iterate over contours to find the green triangle
+        triangle_contour = None
+        for cont in contours:
+            perimeter = cv2.arcLength(cont, True)
+            approx = cv2.approxPolyDP(cont, 0.04 * perimeter, True)
+            area = cv2.contourArea(cont)
+            if len(approx) == 3 and 300 < area < 2000:
+                triangle_contour = approx
+                break
+        #Calculate normalized contour coordinates
+        triangle_contour = np.squeeze(triangle_contour)
+        triangle_contour = triangle_contour / (image.shape[1], image.shape[0])
+
+        self.triangle_contour = triangle_contour
+       
+    def getRobotPosition(self,image):
+        triangle_info = {}
+
+        # revert back to pixel coordinates with scaled images
+        triangle_contour = self.triangle_contour * (image.shape[1], image.shape[0])
+        triangle_contour = np.expand_dims(triangle_contour, axis=1)
+        approx = triangle_contour.astype(np.int32)
+
+        tip_point, base_points = self.FrontAndBack(approx[:, 0])
+        mid_base_point = np.mean(base_points, axis=0).astype(int)
+        center = np.array(np.mean([tip_point, mid_base_point], axis=0).astype(int))
+        
+        # center = center/(image.shape[1], image.shape[0])
+        # center = center * [1920,1080]
+        center = GetCoordinates.calcpos(center,(image.shape[1]/2,image.shape[0]/2))
+        # center = center / [1920,1080]
+        # center = center * (image.shape[1], image.shape[0])
+        triangle_info['front'] = tuple(tip_point)
+        triangle_info['back'] = tuple(mid_base_point)
+        triangle_info['center'] = center.astype(np.int32)
+
+        return triangle_info
+    def scale_image(self, scale,image):
         scale_percent = scale  # percent of original size
-        width = int(self.image.shape[1] * scale_percent / 100)
-        height = int(self.image.shape[0] * scale_percent / 100)
+        width = int(image.shape[1] * scale_percent / 100)
+        height = int(image.shape[0] * scale_percent / 100)
         dim = (width, height)
 
         # Resize image
-        resized = cv2.resize(self.image, dim, interpolation=cv2.INTER_AREA)
+        resized = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
         new_img_size = (resized.shape[1] - (resized.shape[1] % 32), resized.shape[0] - (resized.shape[0] % 32))
         resized_img = cv2.resize(resized, new_img_size)
         lab = cv2.cvtColor(resized_img, cv2.COLOR_BGR2LAB)
@@ -257,23 +351,50 @@ class NavigationController:
         # Convert the LAB image back to RGB color space
         rgb_clahe = cv2.cvtColor(lab_clahe, cv2.COLOR_LAB2BGR)
 
-        self.image = rgb_clahe
+        image = resized_img
+        return image
 
     def find_path(self, start, goal):
        
         
         grid = Grid(matrix=self.binary_image)
-        b_first = BestFirst(heuristic=heuristic.euclidean)
+        grid.cleanup()
+        b_first = BestFirst(heuristic=heuristic.euclidean,time_limit=10)
         start = grid.node(start[0], start[1])
         end = grid.node(goal[0], goal[1])
-        path, runs = b_first.find_path(start, end, grid)
+        try:
+            path, runs = b_first.find_path(start, end, grid)
+        except:
+            print("Time out pathing")
+            return None,False
         print(f"length of path {len(path)}")
 
         new_ar = self.find_path_vector_points(path, start, end)
 
-        return new_ar
+        return new_ar,True
 
     def show_image(self, image):
+        return
         cv2.imshow("Image", image)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+
+
+    def geteightpoints(punktb, punkta, vectorlength):
+        originalLength = vectorlength
+        value = 5
+        dx = vectorlength / value
+        points = [punktb]
+
+        if vectorlength == 0:
+            return points 
+
+        for d in range(1, value):
+            shortened_length = vectorlength - dx
+            pixel_x = punkta[0] + (shortened_length * (punktb[0] - punkta[0]) / originalLength)
+            pixel_y = punktb[1] + (shortened_length * (punktb[1] - punktb[1]) / originalLength)
+            points.append((pixel_x, pixel_y))
+            vectorlength = shortened_length
+
+        points.append(punkta)
+        return points

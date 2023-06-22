@@ -6,13 +6,23 @@ from pybricks.parameters import Port, Stop, Direction, Button, Color
 from pybricks.tools import wait, StopWatch, DataLog
 from pybricks.robotics import DriveBase
 from pybricks.media.ev3dev import SoundFile, ImageFile
+from time import sleep
 
 
 ev3 = EV3Brick()
 
-unload_motor = Motor(port=Port.D)
+unload_motor = Motor(port=Port.B)
+
+# unload_motor.run_angle(100, 150)
+
+# sleep(2)
+
+unload_motor.run_angle(100, -50)
 
 
-unload_motor.run_angle(100, 150)
-unload_motor.run_angle(100, -150)
+
+
+
+
+
 
